@@ -16,3 +16,4 @@ scheduler.json
 *~
 .gitignore_*
 simulated_results/*
+logdir*

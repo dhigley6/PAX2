@@ -39,10 +39,11 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
         sim['impulse_response']['x'],
         sim['impulse_response']['y'],
         sim['pax_x'],
-        iterations=parameters['iterations']
+        iterations=parameters['iterations'],
+        ground_truth_y=sim['xray_xy']['y']
     )
     param_grid = {'regularizer_width': parameters['regularizer_width']}
-    deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=1)
+    deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=-1)
     deconvolver_gs.fit(np.array(sim['pax_y_list']))
     to_save = {'deconvolver_gs': deconvolver_gs, 'sim': sim}
     file_name = _get_filename(log10_num_electrons, rixs, photoemission)
