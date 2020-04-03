@@ -30,7 +30,7 @@ def sim_analyze_with_bg():
     pass
 
 def test2(log10_num_electrons, rixs='schlappa'):
-    sim = simulate_pax.simulate_set_from_presets(
+    impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
         log10_num_electrons,
         rixs,
         'ag_with_bg',
@@ -39,36 +39,36 @@ def test2(log10_num_electrons, rixs='schlappa'):
     )
     plt.close('all')
     plt.figure()
-    plt.plot(sim['impulse_response']['x'], sim['impulse_response']['y'])
-    plt.plot(sim['impulse_response']['x'], sim['impulse_response']['y']-sim['impulse_response_bg'])
-    estimated_bg = convolve(sim['mean_pax_xy']['y'], sim['impulse_response_bg'], mode='valid')
+    plt.plot(impulse_response['x'], impulse_response['y'])
+    plt.plot(impulse_response['x'], impulse_response['y']-impulse_response['bg'])
+    estimated_bg = convolve(np.mean(pax_spectra['y'], axis=0), impulse_response['bg'], mode='valid')
     plt.figure()
-    plt.plot(sim['mean_pax_xy']['x'], sim['mean_pax_xy']['y'])
-    plt.plot(sim['mean_pax_xy']['x'], estimated_bg)
+    plt.plot(pax_spectra['x'], np.mean(pax_spectra['y'], axis=0))
+    plt.plot(pax_spectra['x'], estimated_bg)
     deconvolver = LRDeconvolve.LRFisterDeconvolve(
-        sim['impulse_response']['x'],
-        sim['impulse_response']['y']-sim['impulse_response_bg'],
-        sim['pax_x'],
+        impulse_response['x'],
+        impulse_response['y'],
+        pax_spectra['x'],
         iterations=1E2,
-        ground_truth_y=sim['xray_xy']['y']
+        ground_truth_y=xray_xy['y']
     )
     param_grid = {'regularizer_width': parameters['regularizer_widths']}
     deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=-1)
-    deconvolver_gs.fit(np.array(sim['pax_y_list'])-estimated_bg)
-    plot_result.make_plot(deconvolver_gs.best_estimator_, sim)
+    deconvolver_gs.fit(np.array(pax_spectra['y'])-estimated_bg)
+    plot_result.make_plot(deconvolver_gs.best_estimator_, pax_spectra, xray_xy)
     
-    estimated_bg = convolve(sim['mean_pax_xy']['y'], sim['impulse_response_bg'], mode='valid')
+    estimated_bg = convolve(np.mean(pax_spectra['y'], axis=0), impulse_response['bg'], mode='valid')
     plt.figure()
-    plt.plot(sim['mean_pax_xy']['x'], sim['mean_pax_xy']['y'])
-    plt.plot(sim['mean_pax_xy']['x'], estimated_bg)
+    plt.plot(pax_spectra['x'], np.mean(pax_spectra['y'], axis=0))
+    plt.plot(pax_spectra['x'], estimated_bg)
     deconvolver = LRDeconvolve.LRFisterDeconvolve(
-        sim['impulse_response']['x'],
-        sim['impulse_response']['y']-sim['impulse_response_bg'],
-        sim['pax_x'],
+        impulse_response['x'],
+        impulse_response['y'],
+        pax_spectra['x'],
         iterations=1E2,
-        ground_truth_y=sim['xray_xy']['y']
+        ground_truth_y=xray_xy['y']
     )
     param_grid = {'regularizer_width': parameters['regularizer_widths']}
     deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=-1)
-    deconvolver_gs.fit(np.array(sim['pax_y_list'])-estimated_bg)
-    plot_result.make_plot(deconvolver_gs.best_estimator_, sim)
+    deconvolver_gs.fit(np.mean(pax_spectra['y'], axis=0)-estimated_bg)
+    plot_result.make_plot(deconvolver_gs.best_estimator_, pax_spectra, xray_xy)

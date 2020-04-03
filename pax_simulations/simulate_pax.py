@@ -7,17 +7,18 @@ Calculate simulated PAX spectra with Poisson statistics.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.signal import convolve
 
 from pax_simulations import model_rixs
 from pax_simulations import model_photoemission
 
-def simulate_set_from_presets(total_log10_num_electrons, rixs, photoemission, num_simulations, energy_spacing, bg_height=0.05, bg_width=100):
+def simulate_from_presets(total_log10_num_electrons, rixs, photoemission, num_simulations, energy_spacing, bg_height=0.05, bg_width=100):
+    """Simulate PAX spectra using preset options for RIXS and photoemission spectra
+    """
     total_counts = 10**total_log10_num_electrons
     xray_xy = model_rixs.make_model_rixs(rixs, energy_spacing)
     photoemission_xy = model_photoemission.make_model_photoemission(photoemission, xray_xy, energy_spacing)
-    impulse_response, pax_x, pax_y_list, mean_pax_xy = simulate_pax_set(
+    impulse_response, pax_spectra = simulate(
         xray_xy,
         photoemission_xy,
         total_counts,
@@ -25,45 +26,25 @@ def simulate_set_from_presets(total_log10_num_electrons, rixs, photoemission, nu
         bg_height,
         bg_width
     )
-    to_return = {
-        'impulse_response': impulse_response,
-        'pax_x': pax_x,
-        'pax_y_list': pax_y_list,
-        'mean_pax_xy': mean_pax_xy,
-        'xray_xy': xray_xy
-    }
-    if 'bg' in impulse_response.keys():
-        to_return.update({'impulse_response_bg': impulse_response['bg']})
-    return to_return
+    return impulse_response, pax_spectra, xray_xy
 
-def simulate(xray_spectrum, photoemission_spectrum, counts, bg_height=0.2, bg_width=100):
-    """Simulate PAX spectrum
+def simulate(xray_spectrum, photoemission_spectrum, counts, bg_height=0.2, bg_width=100, num_simulations=1):
+    """Simulate PAX spectra 
     """
     impulse_response = calculate_pax_impulse_response(photoemission_spectrum)
     noiseless_pax_spectrum = convolve(xray_spectrum['y'],
                                          impulse_response['y'],
                                          mode='valid')
     single_photon = np.sum(noiseless_pax_spectrum/counts)
-    pax_spectrum_y = _apply_poisson_noise(noiseless_pax_spectrum, single_photon)
-    pax_spectrum = {
+    pax_y_list = [_apply_poisson_noise(noiseless_pax_spectrum, single_photon) for _ in range(num_simulations)]
+    pax_spectra = {
             'x': _calculate_pax_kinetic_energy(
                     xray_spectrum,
                     photoemission_spectrum),
-            'y': pax_spectrum_y,
+            'y': pax_y_list,
             'x_min': xray_spectrum['x_min']-photoemission_spectrum['x_max'],
             'x_max': xray_spectrum['x_max']-photoemission_spectrum['x_min']}
-    return impulse_response, pax_spectrum
-
-def simulate_pax_set(rixs, photoemission, total_counts, num_simulations, bg_height, bg_width):
-    pax_y_list = []
-    for _ in np.arange(num_simulations):
-        impulse_response, pax = simulate(rixs, photoemission, round(total_counts/num_simulations), bg_height, bg_width)
-        pax_y_list.append(pax['y'])
-    pax_x = pax['x']
-    pax_mean = np.mean(pax_y_list, axis=0)
-    mean_pax_xy = {'x': pax_x,
-                   'y': pax_mean}
-    return impulse_response, pax_x, pax_y_list, mean_pax_xy
+    return impulse_response, pax_spectra
     
 def calculate_pax_impulse_response(photoemission_spectrum):
     """Normalize and flip photoemission to obtain PAX impulse response.
