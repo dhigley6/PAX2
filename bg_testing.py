@@ -21,7 +21,7 @@ parameters = {
 
 def run_test(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     saved = run_analyze_save_load.load(log10_num_electrons, rixs, photoemission)
-    plot_result.make_plot(saved['deconvolver_gs'].best_estimator_, saved['sim'])
+    #plot_result.make_plot(saved['deconvolver_gs'].best_estimator_, saved['sim'])
 
 def run_test2(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     pass
@@ -47,28 +47,45 @@ def test2(log10_num_electrons, rixs='schlappa'):
     plt.plot(pax_spectra['x'], estimated_bg)
     deconvolver = LRDeconvolve.LRFisterDeconvolve(
         impulse_response['x'],
-        impulse_response['y'],
+        (impulse_response['y']-impulse_response['bg'])/np.sum(impulse_response['y']-impulse_response['bg']),
         pax_spectra['x'],
-        iterations=1E2,
+        iterations=1E3,
         ground_truth_y=xray_xy['y']
     )
     param_grid = {'regularizer_width': parameters['regularizer_widths']}
     deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=-1)
-    deconvolver_gs.fit(np.array(pax_spectra['y'])-estimated_bg)
-    plot_result.make_plot(deconvolver_gs.best_estimator_, pax_spectra, xray_xy)
+    deconvolver_gs.fit(np.array(pax_spectra['y']))
+    plot_result.make_plot(deconvolver_gs.best_estimator_)
     
-    estimated_bg = convolve(np.mean(pax_spectra['y'], axis=0), impulse_response['bg'], mode='valid')
+    deconvolved_y_list = []
+    deconvolved_y = deconvolver_gs.best_estimator_.deconvolved_y_
+    deconvolved_y_list.append(deconvolved_y)
+    for _ in range(3):
+        deconvolved_y = georgi_bg_estimate_block(deconvolved_y, impulse_response, pax_spectra, xray_xy)
+        deconvolved_y_list.append(deconvolved_y)
+    plt.figure()
+    plt.plot(deconvolver_gs.best_estimator_.deconvolved_x, deconvolver_gs.best_estimator_.ground_truth_y, label='Ground Truth')
+    for ind, deconvolved_y in enumerate(deconvolved_y_list):
+        plt.plot(deconvolver_gs.best_estimator_.deconvolved_x, deconvolved_y, label=str(ind))
+        plt.legend(loc='best')
+
+def georgi_bg_estimate_block(last_deconvolved, impulse_response, pax_spectra, xray_xy):
+    estimated_bg = convolve(last_deconvolved, impulse_response['bg'], mode='valid')
     plt.figure()
     plt.plot(pax_spectra['x'], np.mean(pax_spectra['y'], axis=0))
     plt.plot(pax_spectra['x'], estimated_bg)
     deconvolver = LRDeconvolve.LRFisterDeconvolve(
         impulse_response['x'],
-        impulse_response['y'],
+        (impulse_response['y']-impulse_response['bg'])/np.sum(impulse_response['y']-impulse_response['bg']),
         pax_spectra['x'],
-        iterations=1E2,
+        iterations=1E3,
         ground_truth_y=xray_xy['y']
     )
     param_grid = {'regularizer_width': parameters['regularizer_widths']}
     deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=-1)
-    deconvolver_gs.fit(np.mean(pax_spectra['y'], axis=0)-estimated_bg)
-    plot_result.make_plot(deconvolver_gs.best_estimator_, pax_spectra, xray_xy)
+    deconvolver_gs.fit(np.array(pax_spectra['y'])-estimated_bg)
+    plot_result.make_plot(deconvolver_gs.best_estimator_)
+    return deconvolver_gs.best_estimator_.deconvolved_y_
+
+def renormalize_data():
+    pass

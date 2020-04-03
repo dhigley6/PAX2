@@ -67,7 +67,8 @@ class LRDeconvolve(BaseEstimator):
         mu = np.mean(x)
         gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
         gauss = gauss/np.sum(gauss)
-        return convolve(measured_y, gauss, mode='valid')
+        #return convolve(measured_y, gauss, mode='valid')
+        return measured_y
 
     def predict(self, X):
         return self.deconvolved_y_
