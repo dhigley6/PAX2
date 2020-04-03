@@ -43,15 +43,8 @@ def simulate(xray_spectrum, photoemission_spectrum, counts, bg_height=0.2, bg_wi
     noiseless_pax_spectrum = convolve(xray_spectrum['y'],
                                          impulse_response['y'],
                                          mode='valid')
-    bg = get_bg(bg_height, bg_width, noiseless_pax_spectrum)
-    plt.figure()
-    plt.plot(noiseless_pax_spectrum)
-    noiseless_pax_spectrum = noiseless_pax_spectrum+bg
     single_photon = np.sum(noiseless_pax_spectrum/counts)
     pax_spectrum_y = _apply_poisson_noise(noiseless_pax_spectrum, single_photon)
-    plt.plot(pax_spectrum_y)
-    pax_spectrum_y = pax_spectrum_y-bg
-    plt.plot(pax_spectrum_y)
     pax_spectrum = {
             'x': _calculate_pax_kinetic_energy(
                     xray_spectrum,
@@ -60,13 +53,6 @@ def simulate(xray_spectrum, photoemission_spectrum, counts, bg_height=0.2, bg_wi
             'x_min': xray_spectrum['x_min']-photoemission_spectrum['x_max'],
             'x_max': xray_spectrum['x_max']-photoemission_spectrum['x_min']}
     return impulse_response, pax_spectrum
-
-def get_bg(bg_height, bg_width, noiseless_pax_spectrum):
-    x = np.arange(len(noiseless_pax_spectrum))
-    x = x-np.mean(x)
-    sigmoid = 1/(1+np.exp(x/bg_width))
-    bg = bg_height*np.amax(noiseless_pax_spectrum)*sigmoid
-    return bg
 
 def simulate_pax_set(rixs, photoemission, total_counts, num_simulations, bg_height, bg_width):
     pax_y_list = []
