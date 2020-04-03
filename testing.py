@@ -22,5 +22,4 @@ def run_test3(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     #run_analyze_save_load.run(log10_num_electrons, rixs, photoemission)
     saved = run_analyze_save_load.load(log10_num_electrons, rixs, photoemission)
     plot_result.make_plot(saved['deconvolver_gs'].best_estimator_, saved['sim'])
-    summary.make_plot(saved['deconvolver_gs'].best_estimator_, saved['sim'])
     cv_plot.make_plot(saved['deconvolver_gs'])

@@ -32,6 +32,8 @@ def simulate_set_from_presets(total_log10_num_electrons, rixs, photoemission, nu
         'mean_pax_xy': mean_pax_xy,
         'xray_xy': xray_xy
     }
+    if 'bg' in impulse_response.keys():
+        to_return.update({'impulse_response_bg': impulse_response['bg']})
     return to_return
 
 def simulate(xray_spectrum, photoemission_spectrum, counts, bg_height=0.2, bg_width=100):
@@ -82,7 +84,12 @@ def calculate_pax_impulse_response(photoemission_spectrum):
     """
     impulse_response = {'x': -1*photoemission_spectrum['x'],
                         'y': np.flipud(photoemission_spectrum['y'])}
-    impulse_response['y'] = impulse_response['y']/np.sum(impulse_response['y'])
+    norm_factor = np.sum(impulse_response['y'])
+    impulse_response['y'] = impulse_response['y']/norm_factor
+    if 'bg' in photoemission_spectrum.keys():
+        impulse_response_bg = np.flipud(photoemission_spectrum['bg'])
+        impulse_response_bg = impulse_response_bg/norm_factor
+        impulse_response.update({'bg': impulse_response_bg})
     return impulse_response
 
 def _apply_poisson_noise(data, single_photon=1.0):
