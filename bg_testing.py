@@ -9,7 +9,7 @@ from scipy.signal import convolve
 
 import LRDeconvolve
 from pax_simulations import model_photoemission, run_analyze_save_load, simulate_pax
-from visualize import plot_result
+from visualize import plot_result, cv_plot
 
 parameters = {
     'energy_spacing': 0.005,
@@ -21,13 +21,33 @@ parameters = {
 
 def run_test(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     saved = run_analyze_save_load.load(log10_num_electrons, rixs, photoemission)
-    #plot_result.make_plot(saved['deconvolver_gs'].best_estimator_, saved['sim'])
+    plot_result.make_plot(saved['deconvolver_gs'].best_estimator_)
 
 def run_test2(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     pass
 
 def sim_analyze_with_bg():
     pass
+
+def test3(log10_num_electrons=6, rixs='schlappa'):
+    impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
+        log10_num_electrons,
+        'schlappa',
+        'ag',
+        4,
+        0.005
+    )
+    deconvolver = LRDeconvolve.LRFisterGrid(
+        impulse_response['x'],
+        impulse_response['y'],
+        pax_spectra['x'],
+        parameters['regularizer_widths'],
+        ground_truth_y=xray_xy['y']
+    )
+    deconvolver.fit(np.array(pax_spectra['y']))
+    plot_result.make_plot(deconvolver)
+    cv_plot.make_plot(deconvolver)
+
 
 def test2(log10_num_electrons, rixs='schlappa'):
     impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
@@ -52,7 +72,8 @@ def test2(log10_num_electrons, rixs='schlappa'):
         iterations=1E3,
         ground_truth_y=xray_xy['y']
     )
-    param_grid = {'regularizer_width': parameters['regularizer_widths']}
+    param_grid = {'regularizer_width': parameters['regularizer_widths'],
+                  'ground_truth_y': [xray_xy['y']]}
     deconvolver_gs = GridSearchCV(deconvolver, param_grid, cv=parameters['cv_fold'], return_train_score=True, verbose=1, n_jobs=-1)
     deconvolver_gs.fit(np.array(pax_spectra['y']))
     plot_result.make_plot(deconvolver_gs.best_estimator_)
@@ -78,7 +99,7 @@ def georgi_bg_estimate_block(last_deconvolved, impulse_response, pax_spectra, xr
         impulse_response['x'],
         (impulse_response['y']-impulse_response['bg'])/np.sum(impulse_response['y']-impulse_response['bg']),
         pax_spectra['x'],
-        iterations=1E3,
+        iterations=1E2,
         ground_truth_y=xray_xy['y']
     )
     param_grid = {'regularizer_width': parameters['regularizer_widths']}
