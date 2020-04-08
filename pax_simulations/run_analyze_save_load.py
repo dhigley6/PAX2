@@ -19,7 +19,7 @@ PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), '../simulated_resul
 DEFAULT_PARAMETERS = {
     'energy_spacing': 0.005,
     'iterations': 1E3,
-    'simulations': 100,
+    'simulations': 1000,
     'cv_fold': 4,
     'regularizer_widths': np.logspace(-3, -1, 10)
 }
@@ -56,7 +56,7 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
         pickle.dump(to_save, f)
     return to_save
 
-def load(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
+def load(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     """Load PAX simulation results
     """
     file_name = _get_filename(log10_num_electrons, rixs, photoemission)

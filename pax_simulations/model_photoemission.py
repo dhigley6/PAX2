@@ -31,10 +31,16 @@ FERMI_CENTER = 5
 PT_FILE_PATH = os.path.join(os.path.dirname(__file__), 'data/Pt_valence_photoemission.csv')
 
 def make_model_photoemission(photoemission, rixs_xy, energy_spacing):
+    if photoemission == 'ag':
+        center = AG_3D_CENTER
+    elif photoemission == 'ag_with_bg':
+        center = AG_3D_CENTER
+    elif photoemission == 'fermi':
+        center = FERMI_CENTER
     binding_energy = calculate_binding_energies(
         len(rixs_xy['x']),
         energy_spacing,
-        AG_3D_CENTER)
+        center)
     photoemission_xy = _model_photoemission_function(photoemission)(binding_energy)
     return photoemission_xy
 
@@ -111,9 +117,9 @@ def get_ag_3d_spectrum(binding_energy):
 def get_fermi_spectrum(binding_energy):
     """Model Fermi edge spectrum
     """
-    y = np.sqrt(10-binding_energy)
+    y = np.sqrt(5-binding_energy)
     y[binding_energy < 0] = 0
-    y[binding_energy > 10] = 0
+    y[binding_energy > 5] = 0
     y = y +1E-7
     fermi_photoemission = {'x': binding_energy,
                            'y': y/np.sum(y),
