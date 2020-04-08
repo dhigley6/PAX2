@@ -1,6 +1,7 @@
 """Summary plot of deconvolution dependence on regularization parameter
 """
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 def make_plot(deconvolved_grid):
@@ -19,14 +20,24 @@ def make_plot(deconvolved_grid):
     _format_plot(ax_deconvolved_mse, ax_reconvolved_mse, ax_cv, ax_spectra)
 
 def _make_deconvolved_mse_plot(ax, deconvolved_grid):
-    ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.deconvolved_mse_, deconvolved_grid.deconvolved_mse_std_)
+    line = ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.deconvolved_mse_, deconvolved_grid.deconvolved_mse_std_)
+    min_ind = np.argmin(deconvolved_grid.deconvolved_mse_)
+    ax.plot(deconvolved_grid.regularizer_widths[min_ind], deconvolved_grid.deconvolved_mse_[min_ind], marker='x', color=line[0].get_color())
 
 def _make_cv_plot(ax, deconvolved_grid):
-    ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.cv_, deconvolved_grid.cv_std_)
+    line = ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.cv_, deconvolved_grid.cv_std_)
+    min_ind = np.argmin(deconvolved_grid.cv_)
+    ax.plot(deconvolved_grid.regularizer_widths[min_ind], deconvolved_grid.cv_[min_ind], marker='x', color=line[0].get_color())
 
 def _make_reconvolved_mse_plot(ax, deconvolved_grid):
-    ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.reconvolved_mse_, deconvolved_grid.reconvolved_mse_std_)
+    line = ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.reconvolved_mse_, deconvolved_grid.reconvolved_mse_std_)
+    min_ind = np.argmin(deconvolved_grid.reconvolved_mse_)
+    ax.plot(deconvolved_grid.regularizer_widths[min_ind], deconvolved_grid.reconvolved_mse_[min_ind], marker='x', color=line[0].get_color())
 
 def _format_plot(ax_deconvolved_mse, ax_reconvolved_mse, ax_cv, ax_spectra):
+    ax_deconvolved_mse.set_ylabel('Deconvolved MSE')
+    ax_reconvolved_mse.set_ylabel('Reconvolved MSE')
+    ax_cv.set_ylabel('CV')
+    ax_cv.set_xlabel('Regularizer Width (eV)')
     ax_reconvolved_mse.set_xscale('log')
     ax_cv.set_xscale('log')

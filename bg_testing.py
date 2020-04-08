@@ -5,7 +5,9 @@ Module for testing background generation and subtraction
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error
 from scipy.signal import convolve
+import tensorflow as tf
 
 import LRDeconvolve
 from pax_simulations import model_photoemission, run_analyze_save_load, simulate_pax
@@ -18,6 +20,25 @@ parameters = {
     'cv_fold': 2,
     'regularizer_widths': np.logspace(-3, -1, 10)
 }
+
+def test_tf(log10_num_electrons=6):
+    impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
+        log10_num_electrons,
+        'schlappa',
+        'ag',
+        4,
+        0.005
+    )
+    pax_average = np.mean(pax_spectra['y'], axis=0)
+    adam = tf.keras.optimizers.Adam()
+
+
+def tf_train_step(deconvolved, optimizer):
+    with tf.GradientTape() as tape:
+        reconvolved = 
+        loss = mean_squared_error(measurement, reconvolved)
+    grads = tape.gradient(loss, deconvolved)
+    optimizer.apply_gradients(zip(deconvolved, last))
 
 def run_test(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     saved = run_analyze_save_load.load(log10_num_electrons, rixs, photoemission)
