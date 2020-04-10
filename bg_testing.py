@@ -15,7 +15,7 @@ from visualize import plot_result, cv_plot
 
 parameters = {
     'energy_spacing': 0.005,
-    'iterations': 1E3,
+    'iterations': 1E2,
     'simulations': 10,
     'cv_fold': 2,
     'regularizer_widths': np.logspace(-3, -1, 10)
@@ -35,7 +35,7 @@ def test_tf(log10_num_electrons=6):
 
 def tf_train_step(deconvolved, optimizer):
     with tf.GradientTape() as tape:
-        reconvolved = 
+        reconvolved = tf.signal.convolve()
         loss = mean_squared_error(measurement, reconvolved)
     grads = tape.gradient(loss, deconvolved)
     optimizer.apply_gradients(zip(deconvolved, last))
@@ -54,7 +54,7 @@ def test3(log10_num_electrons=6, rixs='schlappa'):
     impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
         log10_num_electrons,
         'schlappa',
-        'ag',
+        'ag_with_bg',
         4,
         0.005
     )

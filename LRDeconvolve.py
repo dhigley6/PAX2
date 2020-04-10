@@ -71,6 +71,9 @@ class LRFisterGrid(BaseEstimator):
 
 
 class LRDeconvolve(BaseEstimator):
+    """Modified Lucy-Richardson deconvolution
+    (the modification enables handling a background)
+    """
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, iterations=5, ground_truth_y=None):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
@@ -91,20 +94,21 @@ class LRDeconvolve(BaseEstimator):
         return self
 
     def _LR(self, measured_y):
-        """Perform Lucy-Richardson deconvolution of measured_y
+        """Perform modifed Lucy-Richardson deconvolution of measured_y
         """
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
         writer = tf.summary.create_file_writer('logdir_test')
         with writer.as_default():
             for iteration in range(self.iterations):
-                I = convolve(previous_O, self.impulse_response_y, mode='valid')
-                relative_blur = measured_y/I
-                correction_factor_estimate = convolve(relative_blur, impulse_response_y_reversed, mode='valid')
-                current_O = previous_O*correction_factor_estimate
+                ones_vec = np.ones_like(previous_O)
+                blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
+                correction_factor = measured_y/blurred
+                gradient = convolve(self.impulse_response_y, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+                current_O = previous_O*(1-gradient)
                 previous_O = current_O
                 self._save_iteration_stats(current_O, iteration)
-                writer.flush()
+            writer.flush()
         return current_O
 
     def _save_iteration_stats(self, current_deconvolved, iteration):
@@ -147,7 +151,8 @@ class LRDeconvolve(BaseEstimator):
         return deconvolved_x
 
 class LRFisterDeconvolve(LRDeconvolve):
-    """Lucy-Richardson deconvolution with Fister regularization
+    """Modifed Lucy-Richardson deconvolution with Fister regularization
+    The modification enables handling of a background in the impulse response function
     """
 
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_width=0.05, iterations=1E2, ground_truth_y=None, logging=False):
@@ -162,7 +167,7 @@ class LRFisterDeconvolve(LRDeconvolve):
         self.logging = logging
 
     def _LR_fister(self, measured_y):
-        """Perform Fister-regularized Lucy-Richardson deconvolution of measured_y
+        """Perform Fister-regularized modified Lucy-Richardson deconvolution of measured_y
         """
         gauss = self._normalized_gaussian(
             self.impulse_response_x,
@@ -175,20 +180,22 @@ class LRFisterDeconvolve(LRDeconvolve):
             writer = tf.summary.create_file_writer(f'logdir_test/{self.regularizer_width}')
             with writer.as_default():
                 for iteration in range(self.iterations):
-                    I = convolve(previous_O, self.impulse_response_y, mode='valid')
-                    relative_blur = measured_y/I
-                    correction_factor_estimate = convolve(relative_blur, impulse_response_y_reversed, mode='valid')
-                    current_O = previous_O*correction_factor_estimate
+                    ones_vec = np.ones_like(previous_O)
+                    blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
+                    correction_factor = measured_y/blurred
+                    gradient = convolve(self.impulse_response_y, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+                    current_O = previous_O*(1-gradient)
                     current_O = convolve(current_O, gauss, mode='valid')
                     previous_O = current_O
                     self._save_iteration_stats(current_O, iteration)
                 writer.flush()
         else:
             for iteration in range(self.iterations):
-                I = convolve(previous_O, self.impulse_response_y, mode='valid')
-                relative_blur = measured_y/I
-                correction_factor_estimate = convolve(relative_blur, impulse_response_y_reversed, mode='valid')
-                current_O = previous_O*correction_factor_estimate
+                ones_vec = np.ones_like(previous_O)
+                blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
+                correction_factor = measured_y/blurred
+                gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+                current_O = previous_O*(1-gradient)
                 current_O = convolve(current_O, gauss, mode='valid')
                 previous_O = current_O
         return current_O
@@ -226,6 +233,7 @@ class LRFisterDeconvolve(LRDeconvolve):
 
 class LRL2Deconvolve(LRDeconvolve):
     """Lucy-Richardson deconvolution with L2 regularization
+    (not altered to handle background in impulse response functions)
     """
 
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, alpha=0.05, **kwargs):

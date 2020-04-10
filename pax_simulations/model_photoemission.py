@@ -91,11 +91,10 @@ def get_ag_3d_with_bg(binding_energy):
     """Return photoemission spectrom for Ag 3d levels with artificial background added
     """
     raw_ag_3d_spectrum = get_ag_3d_spectrum(binding_energy)
-    bg_height = np.amax(raw_ag_3d_spectrum['y'])/50
+    bg_height = np.amax(raw_ag_3d_spectrum['y'])/10
     bg = bg_height/(1+np.exp(-1*(raw_ag_3d_spectrum['x']-AG_3D_5HALF_BINDING)))
     ag_3d_spectrum_with_bg = raw_ag_3d_spectrum
     ag_3d_spectrum_with_bg['y'] = raw_ag_3d_spectrum['y']+bg
-    ag_3d_spectrum_with_bg['bg'] = bg
     return ag_3d_spectrum_with_bg
 
 def get_ag_3d_spectrum(binding_energy):
