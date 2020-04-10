@@ -12,7 +12,7 @@ from sklearn.model_selection import GridSearchCV
 import deconvolution_metrics
 
 class LRFisterGrid(BaseEstimator):
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_widths=[0.01, 0.1], iterations=1E3, ground_truth_y=None):
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_widths=[0.01, 0.1], iterations=1E3, ground_truth_y=None, cv=5):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
@@ -21,6 +21,7 @@ class LRFisterGrid(BaseEstimator):
         self.regularizer_widths = regularizer_widths
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
+        self.cv = cv
 
     def fit(self, X):
         deconvolver = LRFisterDeconvolve(
@@ -41,7 +42,7 @@ class LRFisterGrid(BaseEstimator):
         deconvolver_gs = GridSearchCV(
             deconvolver,
             param_grid,
-            cv=5,
+            cv=self.cv,
             return_train_score=True,
             verbose=True,
             scoring=scoring,

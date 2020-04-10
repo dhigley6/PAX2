@@ -8,6 +8,7 @@ import numpy as np
 import os
 import pickle
 from sklearn.model_selection import GridSearchCV
+import pprint
 
 from pax_simulations import simulate_pax
 import LRDeconvolve
@@ -42,7 +43,8 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
         pax_spectra['x'],
         parameters['regularizer_widths'],
         parameters['iterations'],
-        xray_xy['y']
+        xray_xy['y'],
+        parameters['cv_fold']
     )
     deconvolver.fit(np.array(pax_spectra['y']))
     plot_photoemission.make_plot(deconvolver)
@@ -64,6 +66,18 @@ def load(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     with open(file_name, 'rb') as f:
         data = pickle.load(f)
     return data
+
+def print_parameters(log10_num_electrons, rixs='schlappa', photoemission='ag'):
+    """Load a PAX simulation and print parameters it was run with
+    """
+    data = load(log10_num_electrons, rixs, photoemission)
+    to_print = {
+        'iterations': data['deconvolver'].iterations,
+        'cv_fold': data['deconvolver'].cv,
+        'regularizer_widths': data['deconvolver'].regularizer_widths,
+        'shape of input PAX data': np.shape(data['pax_spectra']['y'])
+    }
+    pprint.pprint(to_print)
 
 def _get_filename(log10_num_electrons, rixs, photoemission):
     file_name = '{}/{}_{}_rixs_1E{}.pickle'.format(
