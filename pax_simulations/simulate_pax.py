@@ -53,10 +53,6 @@ def calculate_pax_impulse_response(photoemission_spectrum):
                         'y': np.flipud(photoemission_spectrum['y'])}
     norm_factor = np.sum(impulse_response['y'])
     impulse_response['y'] = impulse_response['y']/norm_factor
-    if 'bg' in photoemission_spectrum.keys():
-        impulse_response_bg = np.flipud(photoemission_spectrum['bg'])
-        impulse_response_bg = impulse_response_bg/norm_factor
-        impulse_response.update({'bg': impulse_response_bg})
     return impulse_response
 
 def _apply_poisson_noise(data, single_photon=1.0):
