@@ -99,13 +99,13 @@ class LRDeconvolve(BaseEstimator):
         """
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
-        writer = tf.summary.create_file_writer('logdir_test')
+        writer = tf.summary.create_file_writer('logdir_test/basic_LR')
         with writer.as_default():
             for iteration in range(self.iterations):
                 ones_vec = np.ones_like(previous_O)
                 blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
                 correction_factor = measured_y/blurred
-                gradient = convolve(self.impulse_response_y, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+                gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
                 current_O = previous_O*(1-gradient)
                 previous_O = current_O
                 self._save_iteration_stats(current_O, iteration)
@@ -177,14 +177,14 @@ class LRFisterDeconvolve(LRDeconvolve):
         )
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
+        ones_vec = np.ones_like(previous_O)
         if self.logging:
             writer = tf.summary.create_file_writer(f'logdir_test/{self.regularizer_width}')
             with writer.as_default():
                 for iteration in range(self.iterations):
-                    ones_vec = np.ones_like(previous_O)
                     blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
                     correction_factor = measured_y/blurred
-                    gradient = convolve(self.impulse_response_y, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+                    gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
                     current_O = previous_O*(1-gradient)
                     current_O = convolve(current_O, gauss, mode='valid')
                     previous_O = current_O
@@ -192,7 +192,6 @@ class LRFisterDeconvolve(LRDeconvolve):
                 writer.flush()
         else:
             for iteration in range(self.iterations):
-                ones_vec = np.ones_like(previous_O)
                 blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
                 correction_factor = measured_y/blurred
                 gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
