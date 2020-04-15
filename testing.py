@@ -14,11 +14,11 @@ from pax_simulations import simulate_pax
 from visualize import plot_photoemission, plot_result, cv_plot
 
 PARAMETERS = {
-    'energy_spacing': 0.005,
-    'iterations': 1E5,
+    'energy_spacing': 0.001,
+    'iterations': 1E4,
     'simulations': 1E3,
     'cv_fold': 3,
-    'regularizer_widths': np.logspace(-3, -1, 10)
+    'regularizer_widths': np.logspace(-4, -2, 10)
 }
 
 def run_test(log10_num_electrons=10, rixs='schlappa', photoemission='ag'):
@@ -36,6 +36,6 @@ def tf_train_step(deconvolved, optimizer):
 
 def run_cv_analysis(iterations=1E5):
     #points = [2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0]
-    points = [7.0]
+    points = [6.0]
     for log10_num_electrons in points:
-        run_analyze_save_load.run(log10_num_electrons, rixs='schlappa', photoemission='ag', **PARAMETERS)
+        run_analyze_save_load.run(log10_num_electrons, rixs=['doublet', 0.01], photoemission='fermi', **PARAMETERS)

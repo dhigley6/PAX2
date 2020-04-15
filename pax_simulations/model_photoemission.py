@@ -9,6 +9,8 @@ Generate model photoemission spectra given input binding energies.
 import numpy as np
 import os
 
+BOLTZMANN_CONSTANT = 8.617E-5    # (eV/K) Taken from wikipedia
+
 AU_4F_7HALF_BINDING = 84.0    # Taken from X-ray data booklet
 AU_4F_5HALF_BINDING = 87.6    # Taken from X-ray data booklet
 AU_4F_BROAD = 0.335    # Lorentzian FWHM taken from Y. Takata et al.,
@@ -26,7 +28,7 @@ AG_3D_BROAD = 0.233    # Lorentzian intrinsic broadening taken from G. Panaccion
                        # Phys. Condens. Matter 17 (2005) 2671-2679
 AG_3D_CENTER = 372
 
-FERMI_CENTER = 5
+FERMI_CENTER = 0
                            
 PT_FILE_PATH = os.path.join(os.path.dirname(__file__), 'data/Pt_valence_photoemission.csv')
 
@@ -50,7 +52,7 @@ def _model_photoemission_function(photoemission):
     elif photoemission == 'ag_with_bg':
         return get_ag_3d_with_bg
     elif photoemission == 'fermi':
-        return get_fermi_spectrum
+        return get_fermi_dirac
     elif isinstance(photoemission, list):
         if photoemission[0] == 'grating':
             fwhm = photoemission[1]
@@ -125,6 +127,19 @@ def get_fermi_spectrum(binding_energy):
                            'x_min': -2.5,
                            'x_max': 12.5}
     return fermi_photoemission
+
+def get_fermi_dirac(binding_energy, T=4):
+    """Model Fermi edge spectrum
+    """
+    kbt = T*BOLTZMANN_CONSTANT
+    y = 1/(np.exp(-1*binding_energy/kbt)+1)
+    fermi_dirac_photoemission = {
+        'x': binding_energy,
+        'y': y/np.sum(y)+1E-9,
+        'x_min': -2.5,
+        'x_max': 2.5
+    }
+    return fermi_dirac_photoemission
 
 def grating_model(binding_energy, fwhm=AG_3D_BROAD, center=None):
     """Return single peak to compare PAX to grating spectrometer
