@@ -76,8 +76,8 @@ def _format_figure(axs):
     axs[2, 0].set_xlabel('Kinetic Energy (eV)')
     axs[2, 0].set_ylabel('Intensity (a.u.)')
     axs[0, 1].set_ylabel('Deconvolved\nMSE')
-    axs[1, 1].set_ylabel('Reconvolved\nMSE')
-    axs[2, 1].set_ylabel('CV-min(CV)+10$^{-7}$')
+    axs[1, 1].set_ylabel('Train.\nReconstruction MSE')
+    axs[2, 1].set_ylabel('Val. Reconstruction\nMSE-minimum+10$^{-7}$')
     axs[2, 1].set_xlabel('Regularization Hyperparameter (eV)')
     axs[2, 1].set_xscale('log')
     axs[0, 0].text(0.9, 0.8, 'A', fontsize=10, weight='bold', horizontalalignment='center',
