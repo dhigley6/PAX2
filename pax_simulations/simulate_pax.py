@@ -22,20 +22,18 @@ def simulate_from_presets(total_log10_num_electrons, rixs, photoemission, num_si
         xray_xy,
         photoemission_xy,
         total_counts,
-        num_simulations,
-        bg_height,
-        bg_width
+        num_simulations
     )
     return impulse_response, pax_spectra, xray_xy
 
-def simulate(xray_spectrum, photoemission_spectrum, counts, bg_height=0.2, bg_width=100, num_simulations=1):
+def simulate(xray_spectrum, photoemission_spectrum, counts, num_simulations=1):
     """Simulate PAX spectra 
     """
     impulse_response = calculate_pax_impulse_response(photoemission_spectrum)
     noiseless_pax_spectrum = convolve(xray_spectrum['y'],
                                          impulse_response['y'],
                                          mode='valid')
-    single_photon = np.sum(noiseless_pax_spectrum/counts)
+    single_photon = num_simulations*np.sum(noiseless_pax_spectrum)/counts
     pax_y_list = [_apply_poisson_noise(noiseless_pax_spectrum, single_photon) for _ in range(num_simulations)]
     pax_spectra = {
             'x': _calculate_pax_kinetic_energy(

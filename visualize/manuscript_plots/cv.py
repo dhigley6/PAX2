@@ -2,9 +2,10 @@
 """
 
 import numpy as np 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+import datetime
 
-from pax_simulations import run_analyze_save_load
+from pax_simulations import run_analyze_save_load, simulate_pax
 import visualize.set_plot_params
 visualize.set_plot_params.init_paper_small()
 
@@ -12,22 +13,34 @@ FIGURES_DIR = 'figures'
 LOG10_ELECTRONS_TO_PLOT = [3.0, 5.0, 7.0]
 
 def make_figure():
-    deconvolved_list = []
-    deconvolved_labels = []
-    for i in LOG10_ELECTRONS_TO_PLOT:
-        deconvolved = run_analyze_save_load.load(i, rixs='schlappa', photoemission='ag')['deconvolver']
-        deconvolved_list.append(deconvolved)
-        deconvolved_labels.append('10$^'+str(int(i))+'$')
+    deconvolved_list, pax_spectra_list, deconvolved_labels = _load_data()
+    val_pax_spectrum = _make_example_pax_val_data()
+    #a = 1/0
     _, axs = plt.subplots(3, 2, sharex='none', figsize=(6, 5))
     _single_deconvolved_plot(axs[0, 0], deconvolved_list[0])
     _single_train_reconstruction_plot(axs[1, 0], deconvolved_list[0])
-    _single_val_reconstruction_plot(axs[2, 0], deconvolved_list[0])
+    _single_val_reconstruction_plot(axs[2, 0], deconvolved_list[0], val_pax_spectrum)
     _deconvolved_mse_plot(axs[0, 1], deconvolved_list, deconvolved_labels)
     _reconvolved_mse_plot(axs[1, 1], deconvolved_list, deconvolved_labels)
     _cv_plot(axs[2, 1], deconvolved_list, deconvolved_labels)
     _format_figure(axs)
-    file_name = f'{FIGURES_DIR}/effect_of_regularization_quant.eps'
+    file_name = f'{FIGURES_DIR}/{datetime.date.today().isoformat()}_effect_of_regularization_quant.eps'
     plt.savefig(file_name, dpi=600)
+
+def _make_example_pax_val_data():
+    _, example_spectra, _ = simulate_pax.simulate_from_presets(5.0, 'schlappa', 'ag', 500, 0.005)
+    return np.mean(example_spectra['y'], axis=0)
+
+def _load_data():
+    deconvolved_list = []
+    pax_spectra_list = []
+    deconvolved_labels = []
+    for i in LOG10_ELECTRONS_TO_PLOT:
+        data = run_analyze_save_load.load(i, rixs='schlappa', photoemission='ag')
+        deconvolved_list.append(data['deconvolver'])
+        pax_spectra_list.append(data['pax_spectra'])
+        deconvolved_labels.append('10$^'+str(int(i))+'$')
+    return deconvolved_list, pax_spectra_list, deconvolved_labels
 
 def _single_deconvolved_plot(ax, deconvolved):
     ax.plot(deconvolved.deconvolved_x, deconvolved.ground_truth_y, 'k--', label='Ground Truth')
@@ -37,8 +50,8 @@ def _single_train_reconstruction_plot(ax, deconvolved):
     ax.plot(deconvolved.convolved_x, deconvolved.measured_y_, 'k--', label='Train. PAX Data')
     ax.plot(deconvolved.convolved_x, deconvolved.reconvolved_y_, 'r', label='Reconstruction')
 
-def _single_val_reconstruction_plot(ax, deconvolved):
-    ax.plot(deconvolved.convolved_x, deconvolved.measured_y_, 'k--', label='Val. PAX Data')
+def _single_val_reconstruction_plot(ax, deconvolved, val_pax_spectrum):
+    ax.plot(deconvolved.convolved_x, val_pax_spectrum, 'k--', label='Val. PAX Data')
     ax.plot(deconvolved.convolved_x, deconvolved.reconvolved_y_, 'r', label='Reconstruction')
     
 def _deconvolved_mse_plot(ax, deconvolved_list, deconvolved_labels):
