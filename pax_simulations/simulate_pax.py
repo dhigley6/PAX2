@@ -12,11 +12,12 @@ from scipy.signal import convolve
 from pax_simulations import model_rixs
 from pax_simulations import model_photoemission
 
-def simulate_from_presets(total_log10_num_electrons, rixs, photoemission, num_simulations, energy_spacing, bg_height=0.05, bg_width=100):
+def simulate_from_presets(total_log10_num_electrons, rixs, photoemission, num_simulations, energy_loss, bg_height=0.05, bg_width=100):
     """Simulate PAX spectra using preset options for RIXS and photoemission spectra
     """
     total_counts = 10**total_log10_num_electrons
-    xray_xy = model_rixs.make_model_rixs(rixs, energy_spacing)
+    xray_xy = model_rixs.make_model_rixs(rixs, energy_loss)
+    energy_spacing = energy_loss[1]-energy_loss[0]
     photoemission_xy = model_photoemission.make_model_photoemission(photoemission, xray_xy, energy_spacing)
     impulse_response, pax_spectra = simulate(
         xray_xy,

@@ -14,11 +14,11 @@ from visualize import plot_photoemission, plot_result, cv_plot
 import assess_convergence
 
 PARAMETERS = {
-    'energy_spacing': 0.001,
+    'energy_loss': np.arange(-8, 10, 0.005),
     'iterations': int(1E1),
     'simulations': int(1E3),
     'cv_fold': 3,
-    'regularizer_widths': np.logspace(-4, -2, 10)
+    'regularizer_widths': np.logspace(-3, -1, 10)
 }
 
 TOTAL_SEPARATION_LIST = [0.05, 0.1, 0.15, 0.2, 0.25]

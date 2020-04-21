@@ -17,12 +17,16 @@ import LRDeconvolve
 PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), '../simulated_results')
 # Set default simulation parameters
 DEFAULT_PARAMETERS = {
-    'energy_spacing': 0.005,
+    'energy_loss': np.arange(-8, 10, 0.005),
     'iterations': 1E3,
     'simulations': 1000,
     'cv_fold': 4,
     'regularizer_widths': np.logspace(-3, -1, 10)
 }
+# good energy_loss for Ag 3d levels with Schlappa RIXS: np.arange(-8, 10, 0.005)
+# good energy_loss for Fermi edge and doublet with < 0.4 eV separation: np.arange(-0.5, 0.5, 0.001)
+# good regularizer_widths for Ag 3d: np.logspace(-3, -1, 10)
+# good regularizer_widths for Fermi edge: np.logspace(-4, -2, 10)
 
 
 def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
@@ -35,7 +39,7 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
         rixs,
         photoemission,
         parameters['simulations'],
-        parameters['energy_spacing']
+        parameters['energy_loss']
     )
     deconvolver = LRDeconvolve.LRFisterGrid(
         impulse_response['x'],

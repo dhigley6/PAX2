@@ -10,9 +10,7 @@ import numpy as np
 
 INCIDENT_ENERGY = 778    # Default incident photon energy
 
-def make_model_rixs(rixs, energy_spacing, incident_photon_energy=INCIDENT_ENERGY):
-    #energy_loss = np.arange(-0.5, 0.5, energy_spacing)
-    energy_loss = np.arange(-8, 10, energy_spacing)
+def make_model_rixs(rixs, energy_loss, incident_photon_energy=INCIDENT_ENERGY):
     rixs_xy = _model_rixs_function(rixs)(
         energy_loss,
         incident_photon_energy)
