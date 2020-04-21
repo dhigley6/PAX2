@@ -185,24 +185,16 @@ class LRFisterDeconvolve(LRDeconvolve):
         ones_vec = np.ones_like(previous_O)
         if self.logging:
             writer = tf.summary.create_file_writer(f'logdir_test/{self.regularizer_width}')
-            with writer.as_default():
-                for iteration in range(self.iterations):
-                    blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
-                    correction_factor = measured_y/blurred
-                    gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
-                    current_O = previous_O*(1-gradient)
-                    current_O = convolve(current_O, gauss, mode='valid')
-                    previous_O = current_O
+        for iteration in range(self.iterations):
+            blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
+            correction_factor = measured_y/blurred
+            gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+            current_O = previous_O*(1-gradient)
+            current_O = convolve(current_O, gauss, mode='valid')
+            previous_O = current_O
+            if self.logging:
+                with writer.as_default():
                     self._save_iteration_stats(current_O, iteration)
-                writer.flush()
-        else:
-            for iteration in range(self.iterations):
-                blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
-                correction_factor = measured_y/blurred
-                gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
-                current_O = previous_O*(1-gradient)
-                current_O = convolve(current_O, gauss, mode='valid')
-                previous_O = current_O
         return current_O
 
     def _LR_fister_iteration(self, previous_deconvolved, measured_y, impulse_response_y_reversed, gauss):
