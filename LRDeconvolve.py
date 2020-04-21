@@ -75,7 +75,7 @@ class LRDeconvolve(BaseEstimator):
     """Modified Lucy-Richardson deconvolution
     (the modification enables handling a background)
     """
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, iterations=5, ground_truth_y=None):
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, iterations=5, ground_truth_y=None, X_valid=None):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
@@ -83,6 +83,7 @@ class LRDeconvolve(BaseEstimator):
         self.deconvolved_x = self._get_deconvolved_x()
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
+        self.X_valid = X_valid
 
     def fit(self, X):
         """Perform PAX 
@@ -115,7 +116,7 @@ class LRDeconvolve(BaseEstimator):
     def _save_iteration_stats(self, current_deconvolved, iteration):
         current_reconstruction = convolve(current_deconvolved, self.impulse_response_y, mode='valid')
         reconstruction_mse = mean_squared_error(current_reconstruction, self.measured_y_)
-        tf.summary.scalar('reconstruction_mse', reconstruction_mse, step=iteration)
+        tf.summary.scalar('train_reconstruction_mse', reconstruction_mse, step=iteration)
         if self.ground_truth_y is not None:
             # We have access to the ground truth, so we can calculate a few more metrics
             deconvolved_mse = mean_squared_error(current_deconvolved, self.ground_truth_y)
@@ -123,6 +124,9 @@ class LRDeconvolve(BaseEstimator):
             ground_truth_reconvolved = convolve(self.ground_truth_y, self.impulse_response_y, mode='valid')
             reconvolved_mse = mean_squared_error(current_reconstruction, ground_truth_reconvolved)
             tf.summary.scalar('reconvolved_mse', reconvolved_mse, step=iteration)
+        if self.X_valid is not None:
+            val_reconstruction_mse = mean_squared_error(current_reconstruction, self.X_valid)
+            tf.summary.scalar('validation_reconstruction_mse', val_reconstruction_mse, step=iteration)
 
 
     def _deconvolution_guess(self, measured_y):
@@ -133,8 +137,8 @@ class LRDeconvolve(BaseEstimator):
         mu = np.mean(x)
         gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
         gauss = gauss/np.sum(gauss)
-        #return convolve(measured_y, gauss, mode='valid')
-        return measured_y
+        return convolve(measured_y, gauss, mode='valid')
+        #return measured_y
 
     def predict(self, X):
         return self.deconvolved_y_
@@ -156,7 +160,7 @@ class LRFisterDeconvolve(LRDeconvolve):
     The modification enables handling of a background in the impulse response function
     """
 
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_width=0.05, iterations=1E2, ground_truth_y=None, logging=False):
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_width=0.05, iterations=1E2, ground_truth_y=None, X_valid=None, logging=False):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
@@ -165,6 +169,7 @@ class LRFisterDeconvolve(LRDeconvolve):
         self.regularizer_width = regularizer_width
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
+        self.X_valid = X_valid
         self.logging = logging
 
     def _LR_fister(self, measured_y):
