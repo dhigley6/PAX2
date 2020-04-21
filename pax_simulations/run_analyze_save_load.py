@@ -12,7 +12,6 @@ import pprint
 
 from pax_simulations import simulate_pax
 import LRDeconvolve
-from visualize import plot_photoemission, plot_result, cv_plot
 
 # Set global simulation parameters
 PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), '../simulated_results')
@@ -48,9 +47,6 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
         parameters['cv_fold']
     )
     deconvolver.fit(np.array(pax_spectra['y']))
-    plot_photoemission.make_plot(deconvolver)
-    cv_plot.make_plot(deconvolver)
-    plot_result.make_plot(deconvolver)
     to_save = {
         'deconvolver': deconvolver,
         'pax_spectra': pax_spectra
