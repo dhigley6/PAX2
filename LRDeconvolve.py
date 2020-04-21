@@ -235,36 +235,3 @@ class LRFisterDeconvolve(LRDeconvolve):
         norm_gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
         norm_gauss = norm_gauss/np.sum(norm_gauss)
         return norm_gauss
-
-class LRL2Deconvolve(LRDeconvolve):
-    """Lucy-Richardson deconvolution with L2 regularization
-    (not altered to handle background in impulse response functions)
-    """
-
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, alpha=0.05, **kwargs):
-        super().__init__(impulse_response_x, impulse_response_y, convolved_x, **kwargs)
-        self.alpha = alpha
-
-    def fit(self, X):
-        """Perform PAX 
-        parameters:
-            X: array, rows are PAX spectra measurements, columns are specific electron energies
-        """
-        measured_y = np.mean(X, axis=0)
-        self.deconvolved_y_ = self._LRL2(measured_y)
-        self.reconvolved_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
-        return self
-
-    def _LRL2(self, measured_y):
-        """Perform L2-regularized Lucy-Richardson deconvolution of measured_y
-        """
-        previous_O = self._deconvolution_guess(measured_y)
-        impulse_response_y_reversed = np.flip(self.impulse_response_y)
-        for _ in range(self.iterations):
-            I = convolve(previous_O, self.impulse_response_y, mode='valid')
-            relative_blur = measured_y/I
-            correction_factor_estimate = convolve(relative_blur, impulse_response_y_reversed, mode='valid')
-            current_O = previous_O*correction_factor_estimate
-            current_O = (-1+np.sqrt(1+2*self.alpha*current_O))/self.alpha
-            previous_O = current_O
-        return current_O
