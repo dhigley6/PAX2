@@ -9,7 +9,6 @@ import os
 import pickle
 from sklearn.model_selection import GridSearchCV
 import pprint
-from joblib import Parallel, delayed
 
 from pax_simulations import simulate_pax
 import LRDeconvolve
@@ -25,54 +24,6 @@ DEFAULT_PARAMETERS = {
     'cv_fold': 4,
     'regularizer_widths': np.logspace(-3, -1, 10)
 }
-
-def assess_convergence(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
-    """Log deconvolution results as a function of iteration number using tensorboard
-    To be used to make sure deconvolutions have been run for sufficient iterations.
-    """
-    parameters = DEFAULT_PARAMETERS
-    parameters.update(kwargs)
-    impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
-        log10_num_electrons,
-        rixs,
-        photoemission,
-        parameters['simulations'],
-        parameters['energy_spacing']
-    )
-    _, val_pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
-        log10_num_electrons-0.33,
-        rixs,
-        photoemission,
-        parameters['simulations'],
-        parameters['energy_spacing']
-    )
-    val_pax_y = np.mean(val_pax_spectra['y'], axis=0)
-    regularizer_widths = parameters['regularizer_widths']
-    regularizer_widths = np.append([0], regularizer_widths)
-    Parallel(n_jobs=1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, parameters['iterations'], val_pax_y) for regularizer_width in regularizer_widths)
-
-def run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y):
-    if regularizer_width == 0:
-        deconvolver = LRDeconvolve.LRDeconvolve(
-            impulse_response['x'],
-            impulse_response['y'],
-            pax_spectra['x'],
-            iterations=iterations,
-            ground_truth_y=xray_xy['y'],
-            X_valid=val_pax_y
-        )
-    else:
-        deconvolver = LRDeconvolve.LRFisterDeconvolve(
-            impulse_response['x'],
-            impulse_response['y'],
-            pax_spectra['x'],
-            regularizer_width=regularizer_width,
-            iterations=iterations,
-            ground_truth_y=xray_xy['y'],
-            logging=True,
-            X_valid=val_pax_y
-        )
-    deconvolver.fit(np.array(pax_spectra['y']))
 
 
 def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
@@ -118,7 +69,7 @@ def load(log10_num_electrons, rixs='schlappa', photoemission='ag'):
     return data
 
 def print_parameters(log10_num_electrons, rixs='schlappa', photoemission='ag'):
-    """Load a PAX simulation and print parameters it was run with
+    """Load a PAX simulation and print some parameters it was run with
     """
     data = load(log10_num_electrons, rixs, photoemission)
     to_print = {
