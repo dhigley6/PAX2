@@ -4,7 +4,6 @@ Module for testing new ideas
 
 import numpy as np
 import matplotlib.pyplot as plt 
-import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from joblib import Parallel, delayed
 
@@ -30,13 +29,6 @@ def run_test(log10_num_electrons=10, rixs='schlappa', photoemission='ag'):
 def convergence_test2(log10_num_electrons=4, rixs='schlappa', photoemission='ag', iterations=1E3):
     run_analyze_save_load.assess_convergence(log10_num_electrons, rixs, photoemission)
 
-def tf_train_step(deconvolved, optimizer):
-    with tf.GradientTape() as tape:
-        reconvolved = tf.signal.convolve()
-        loss = mean_squared_error(measurement, reconvolved)
-    grads = tape.gradient(loss, deconvolved)
-    optimizer.apply_gradients(zip(deconvolved, last))
-
 def run_cv_analysis(iterations=1E5):
     #points = [2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0]
     points = [6.0]
@@ -46,4 +38,4 @@ def run_cv_analysis(iterations=1E5):
 def run_doublet_fermi_analysis():
     for separation in TOTAL_SEPARATION_LIST:
         for log10_num_electrons in TOTAL_LOG10_NUM_ELECTRONS_LIST:
-            data = run_analyze_save_load.run(log10_num_electrons, rixs=['doublet', separation], photoemission='fermi', **PARAMETERS)
+            _ = run_analyze_save_load.run(log10_num_electrons, rixs=['doublet', separation], photoemission='fermi', **PARAMETERS)
