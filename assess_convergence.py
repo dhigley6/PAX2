@@ -22,6 +22,7 @@ import LRDeconvolve
 from pax_simulations import run_analyze_save_load, simulate_pax
 DEFAULT_PARAMETERS = run_analyze_save_load.DEFAULT_PARAMETERS
 
+'''
 def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
     """Log deconvolution results as a function of iteration number using tensorboard
     To be used to make sure deconvolutions have been run for sufficient iterations.
@@ -46,11 +47,38 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
     regularizer_widths = parameters['regularizer_widths']
     regularizer_widths = np.append([0], regularizer_widths)
     Parallel(n_jobs=1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, parameters['iterations'], val_pax_y) for regularizer_width in regularizer_widths)
+'''
 
-def run_pax_preset():
-    """Assess convergence of PAX simulation from preset parameters
+def run_pax_preset(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
+    """Log deconvolution results for preset PAX parameters
+    To be used to make sure deconvolutions have been run for sufficient iterations.
     """
-    pass
+    parameters = DEFAULT_PARAMETERS
+    parameters.update(kwargs)
+    impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
+        log10_num_electrons,
+        rixs,
+        photoemission,
+        parameters['simulations'],
+        parameters['energy_spacing']
+    )
+    _, val_pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
+        log10_num_electrons-0.33,
+        rixs,
+        photoemission,
+        parameters['simulations'],
+        parameters['energy_spacing']
+    )
+    val_pax_y = np.mean(val_pax_spectra['y'], axis=0)
+    regularizer_widths = parameters['regularizer_widths']
+    regularizer_widths = np.append([0], regularizer_widths)
+    run(impulse_response, pax_spectra, xray_xy, regularizer_widths, parameters['iterations'], val_pax_y)
+
+def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations, val_pax_y):
+    """Log deconvolution results as a function of iteration number using tensorboard
+    To be used to make sure deconvolutions have been run for sufficient iterations.
+    """
+    Parallel(n_jobs=1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
 
 def run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y):
     if regularizer_width == 0:
