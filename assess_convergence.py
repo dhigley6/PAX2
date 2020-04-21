@@ -60,7 +60,8 @@ def run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_w
             pax_spectra['x'],
             iterations=iterations,
             ground_truth_y=xray_xy['y'],
-            X_valid=val_pax_y
+            X_valid=val_pax_y,
+            logging=True
         )
     else:
         deconvolver = LRDeconvolve.LRFisterDeconvolve(

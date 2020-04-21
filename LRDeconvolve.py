@@ -11,6 +11,8 @@ from sklearn.model_selection import GridSearchCV
 
 import deconvolution_metrics
 
+LOGDIR = 'logdir/'
+
 class LRFisterGrid(BaseEstimator):
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_widths=[0.01, 0.1], iterations=1E3, ground_truth_y=None, cv=5):
         self.impulse_response_x = impulse_response_x
@@ -75,7 +77,7 @@ class LRDeconvolve(BaseEstimator):
     """Modified Lucy-Richardson deconvolution
     (the modification enables handling a background)
     """
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, iterations=5, ground_truth_y=None, X_valid=None):
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, iterations=5, ground_truth_y=None, X_valid=None, logging=False):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
@@ -84,6 +86,7 @@ class LRDeconvolve(BaseEstimator):
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
         self.X_valid = X_valid
+        self.logging = logging
 
     def fit(self, X):
         """Perform PAX 
@@ -100,16 +103,18 @@ class LRDeconvolve(BaseEstimator):
         """
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
-        writer = tf.summary.create_file_writer('logdir_test/basic_LR')
-        with writer.as_default():
-            for iteration in range(self.iterations):
-                ones_vec = np.ones_like(previous_O)
-                blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
-                correction_factor = measured_y/blurred
-                gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
-                current_O = previous_O*(1-gradient)
-                previous_O = current_O
-                self._save_iteration_stats(current_O, iteration)
+        if self.logging:
+            writer = tf.summary.create_file_writer(f'{LOGDIR}unregularized')
+        for iteration in range(self.iterations):
+            ones_vec = np.ones_like(previous_O)
+            blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
+            correction_factor = measured_y/blurred
+            gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+            current_O = previous_O*(1-gradient)
+            previous_O = current_O
+            if self.logging:
+                with writer.as_default():
+                    self._save_iteration_stats(current_O, iteration)
             writer.flush()
         return current_O
 
@@ -184,7 +189,7 @@ class LRFisterDeconvolve(LRDeconvolve):
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
         ones_vec = np.ones_like(previous_O)
         if self.logging:
-            writer = tf.summary.create_file_writer(f'logdir_test/{self.regularizer_width}')
+            writer = tf.summary.create_file_writer(f'{LOGDIR}{self.regularizer_width}')
         for iteration in range(self.iterations):
             blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
             correction_factor = measured_y/blurred
