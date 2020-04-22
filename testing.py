@@ -37,6 +37,11 @@ def run_test(log10_num_electrons=10, rixs='schlappa', photoemission='ag'):
 def convergence_test_schlappa():
     assess_convergence.run_pax_preset(8.0, rixs='schlappa', photoemission='ag', **SCHLAPPA_PARAMETERS)
 
+def convergence_data_gen():
+    parameters = SCHLAPPA_PARAMETERS
+    parameters['iterations'] = 1E3
+    assess_convergence.run_pax_preset(5.0, rixs='schlappa', photoemission='ag', **parameters)
+
 def convergence_test2(log10_num_electrons=7, rixs=['doublet', 0.025], photoemission='fermi'):
     parameters = {
         'energy_loss': np.arange(-0.5, 0.5, 0.001),

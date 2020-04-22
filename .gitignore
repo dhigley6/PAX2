@@ -18,3 +18,4 @@ scheduler.json
 simulated_results/*
 logdir*
 figures*
+data/con*

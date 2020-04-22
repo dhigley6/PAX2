@@ -22,7 +22,7 @@ def make_figure():
     _, axs = plt.subplots(3, 2, sharex='none', figsize=(6, 5))
     _single_deconvolved_plot(axs[0, 0], deconvolved_list[1], deconvolved_norm)
     _single_train_reconstruction_plot(axs[1, 0], deconvolved_list[1], pax_norm)
-    _single_val_reconstruction_plot(axs[2, 0], deconvolved_list[1], val_pax_spectrum, pax_norm)
+    _single_val_reconstruction_plot(axs[2, 0], deconvolved_list[2], val_pax_spectrum, pax_norm)
     _deconvolved_mse_plot(axs[0, 1], deconvolved_list, deconvolved_labels, deconvolved_norm)
     _reconvolved_mse_plot(axs[1, 1], deconvolved_list, deconvolved_labels, pax_norm)
     _cv_plot(axs[2, 1], deconvolved_list, deconvolved_labels, pax_norm)
