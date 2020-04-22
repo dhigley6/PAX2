@@ -19,8 +19,9 @@ import numpy as np
 from joblib import Parallel, delayed
 
 import LRDeconvolve
-from pax_simulations import run_analyze_save_load, simulate_pax
-DEFAULT_PARAMETERS = run_analyze_save_load.DEFAULT_PARAMETERS
+from pax_simulations import simulate_pax
+import pax_simulation_analysis
+DEFAULT_PARAMETERS = pax_simulation_analysis.DEFAULT_PARAMETERS
 
 def run_pax_preset(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
     """Log deconvolution results for preset PAX parameters

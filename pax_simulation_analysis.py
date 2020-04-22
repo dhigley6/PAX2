@@ -14,7 +14,7 @@ from pax_simulations import simulate_pax
 import LRDeconvolve
 
 # Set global simulation parameters
-PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), '../simulated_results')
+PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), 'simulated_results')
 # Set default simulation parameters
 DEFAULT_PARAMETERS = {
     'energy_loss': np.arange(-8, 10, 0.005),
