@@ -37,7 +37,8 @@ def _deconvolved_mse_plot(ax, num_electrons, data_list):
     mse_list = []
     for data in data_list:
         deconvolved = data['deconvolver']
-        mse = np.amin(deconvolved.deconvolved_mse_)
+        deconvolved_mse = mean_squared_error(data.deconvolved_y_, data.ground_truth_y)
+        rmse = np.sqrt(deconvolved_mse)
         norm = 1.1*np.amax(deconvolved.ground_truth_y)
         mse_list.append(mse/norm)
     ax.loglog(num_electrons, mse_list)
