@@ -25,12 +25,17 @@ from visualize.manuscript_plots import doublet_performance, schlappa_performance
 TOTAL_SEPARATION_LIST = doublet_performance.TOTAL_SEPARATION_LIST
 TOTAL_LOG10_NUM_ELECTRONS_LIST = doublet_performance.TOTAL_LOG10_NUM_ELECTRONS_LIST
 
+SCHLAPPA_PARAMETERS = schlappa_performance.SCHLAPPA_PARAMETERS
+
 def run_test(log10_num_electrons=10, rixs='schlappa', photoemission='ag'):
     #data = pax_simulation_analysis.run(log10_num_electrons, rixs, photoemission, **PARAMETERS)
     data = pax_simulation_analysis.load(log10_num_electrons, rixs, photoemission)
     plot_photoemission.make_plot(data['deconvolver'])
     cv_plot.make_plot(data['deconvolver'])
     plot_result.make_plot(data['deconvolver'])
+
+def convergence_test_schlappa():
+    assess_convergence.run_pax_preset(8.0, rixs='schlappa', photoemission='ag', **SCHLAPPA_PARAMETERS)
 
 def convergence_test2(log10_num_electrons=7, rixs=['doublet', 0.025], photoemission='fermi'):
     parameters = {
@@ -49,15 +54,8 @@ def run_cv_analysis(iterations=1E5):
         pax_simulation_analysis.run(log10_num_electrons, rixs=['doublet', 0.01], photoemission='fermi', **PARAMETERS)
 
 def run_schlappa_ag_analysis():
-    parameters = {
-        'energy_loss': np.arange(-8, 10, 0.005),
-        'iterations': int(1E2),
-        'simulations': 1000,
-        'cv_fold': 3,
-        'regularizer_widths': np.logspace(-3, -1, 10)
-    }
     for log10_num_electrons in schlappa_performance.LOG10_COUNTS_LIST:
-        _ = pax_simulation_analysis.run(log10_num_electrons, rixs='schlappa', photoemission='ag', **parameters)
+        _ = pax_simulation_analysis.run(log10_num_electrons, rixs='schlappa', photoemission='ag', **SCHLAPPA_PARAMETERS)
 
 def run_doublet_fermi_analysis():
     parameters = {

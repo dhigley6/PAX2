@@ -5,9 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-from pax_simulations import run_analyze_save_load, simulate_pax
+from pax_simulations import simulate_pax
+import pax_simulation_analysis
 import visualize.set_plot_params
 visualize.set_plot_params.init_paper_small()
+from visualize.manuscript_plots import schlappa_performance
 
 FIGURES_DIR = 'figures'
 LOG10_ELECTRONS_TO_PLOT = [3.0, 5.0, 7.0]
@@ -15,13 +17,12 @@ LOG10_ELECTRONS_TO_PLOT = [3.0, 5.0, 7.0]
 def make_figure():
     deconvolved_list, pax_spectra_list, deconvolved_labels = _load_data()
     val_pax_spectrum = _make_example_pax_val_data()
-    #a = 1/0
     deconvolved_norm = np.amax(deconvolved_list[0].ground_truth_y)
     pax_norm = np.amax(deconvolved_list[0].measured_y_)
     _, axs = plt.subplots(3, 2, sharex='none', figsize=(6, 5))
-    _single_deconvolved_plot(axs[0, 0], deconvolved_list[0], deconvolved_norm)
-    _single_train_reconstruction_plot(axs[1, 0], deconvolved_list[0], pax_norm)
-    _single_val_reconstruction_plot(axs[2, 0], deconvolved_list[0], val_pax_spectrum, pax_norm)
+    _single_deconvolved_plot(axs[0, 0], deconvolved_list[1], deconvolved_norm)
+    _single_train_reconstruction_plot(axs[1, 0], deconvolved_list[1], pax_norm)
+    _single_val_reconstruction_plot(axs[2, 0], deconvolved_list[1], val_pax_spectrum, pax_norm)
     _deconvolved_mse_plot(axs[0, 1], deconvolved_list, deconvolved_labels, deconvolved_norm)
     _reconvolved_mse_plot(axs[1, 1], deconvolved_list, deconvolved_labels, pax_norm)
     _cv_plot(axs[2, 1], deconvolved_list, deconvolved_labels, pax_norm)
@@ -30,7 +31,7 @@ def make_figure():
     plt.savefig(file_name, dpi=600)
 
 def _make_example_pax_val_data():
-    _, example_spectra, _ = simulate_pax.simulate_from_presets(5.0, 'schlappa', 'ag', 500, 0.005)
+    _, example_spectra, _ = simulate_pax.simulate_from_presets(5.0, 'schlappa', 'ag', 1000, schlappa_performance.SCHLAPPA_PARAMETERS['energy_loss'])
     return np.mean(example_spectra['y'], axis=0)
 
 def _load_data():
@@ -38,7 +39,7 @@ def _load_data():
     pax_spectra_list = []
     deconvolved_labels = []
     for i in LOG10_ELECTRONS_TO_PLOT:
-        data = run_analyze_save_load.load(i, rixs='schlappa', photoemission='ag')
+        data = pax_simulation_analysis.load(i, rixs='schlappa', photoemission='ag')
         deconvolved_list.append(data['deconvolver'])
         pax_spectra_list.append(data['pax_spectra'])
         deconvolved_labels.append('10$^'+str(int(i))+'$')

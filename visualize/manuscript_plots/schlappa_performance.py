@@ -12,7 +12,15 @@ import visualize.set_plot_params
 visualize.set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'
-LOG10_COUNTS_LIST = [8.0, 7.5, 7.0, 6.5, 6.0, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5]
+LOG10_COUNTS_LIST = [7.0, 6.5, 6.0, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5]
+
+SCHLAPPA_PARAMETERS = {
+    'energy_loss': np.arange(-8, 10, 0.01),
+    'iterations': int(1E5),
+    'simulations': 1000,
+    'cv_fold': 3,
+    'regularizer_widths': np.logspace(-3, -1, 10)
+}
 
 def make_figure():
     log10_counts = LOG10_COUNTS_LIST
@@ -43,10 +51,11 @@ def make_figure():
 def _spectra_plot(ax, data_list):
     for ind, data in enumerate(data_list):
         deconvolved = data['deconvolver']
+        energy_loss = -1*(deconvolved.deconvolved_x-778)
         offset = ind*1.0
         norm = 1.1*np.amax(deconvolved.ground_truth_y)
-        ax.plot(deconvolved.deconvolved_x, offset+deconvolved.deconvolved_y_/norm, 'r', label='Deconvolved')
-        ax.plot(deconvolved.deconvolved_x, offset+deconvolved.ground_truth_y/norm, 'k--', label='Ground Truth')
+        ax.plot(energy_loss, offset+deconvolved.deconvolved_y_/norm, 'r', label='Deconvolved')
+        ax.plot(energy_loss, offset+deconvolved.ground_truth_y/norm, 'k--', label='Ground Truth')
         
 def _rmse_plot(ax, num_electrons, data_list):
     norm_rmse_list = []
@@ -90,12 +99,15 @@ def _format_figure(axs, spectra_counts):
     axs[0].set_xlabel('Energy Loss (eV)')
     axs[0].set_ylabel('Intensity')
     axs[1].set_ylabel('Norm. RMS\nError')
-    axs[2].set_ylabel('FWHM')
+    axs[2].set_ylabel('FWHM of\nFirst Peak')
     axs[2].set_xlabel('Detected Electrons')
     plt.setp(axs[1].get_xticklabels(), visible=False)
-    legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Target'),
-                       Line2D([0], [0], color='r', label='Retrieved')]
-    axs[0].legend(handles=legend_elements, loc='upper center', frameon=False)
+    legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
+                       Line2D([0], [0], color='r', label='Deconvolved')]
+    axs[0].legend(handles=legend_elements, loc='upper left', frameon=False)
+    legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
+                       Line2D([0], [0], color='r', label='Deconvolved')]
+    axs[2].legend(handles=legend_elements, loc='upper center', frameon=False)
     axs[0].text(-0.25, 2.3, '10$^'+str(int(spectra_counts[2]))+'$', ha='center', transform=axs[0].transData)
     axs[0].text(-0.25, 1.3, '10$^'+str(int(spectra_counts[1]))+'$', ha='center', transform=axs[0].transData)
     axs[0].text(-0.25, 0.3, '10$^'+str(int(spectra_counts[0]))+'$', ha='center', transform=axs[0].transData)
