@@ -27,7 +27,8 @@ def make_figure():
     _reconvolved_mse_plot(axs[1, 1], deconvolved_list, deconvolved_labels, pax_norm)
     _cv_plot(axs[2, 1], deconvolved_list, deconvolved_labels, pax_norm)
     _format_figure(axs)
-    file_name = f'{FIGURES_DIR}/{datetime.date.today().isoformat()}_effect_of_regularization_quant.eps'
+    #file_name = f'{FIGURES_DIR}/{datetime.date.today().isoformat()}_effect_of_regularization_quant.eps'
+    file_name = f'{FIGURES_DIR}/effect_of_regularization_quant.eps'
     plt.savefig(file_name, dpi=600)
 
 def _make_example_pax_val_data():
@@ -60,23 +61,23 @@ def _single_val_reconstruction_plot(ax, deconvolved, val_pax_spectrum, norm):
 def _deconvolved_mse_plot(ax, deconvolved_list, deconvolved_labels, norm):
     for deconvolved, deconvolved_label in zip(deconvolved_list, deconvolved_labels):
         deconvolved_rmse = np.sqrt(deconvolved.deconvolved_mse_)/norm
-        line = ax.loglog(deconvolved.regularizer_widths, deconvolved_rmse, label=deconvolved_label)
-        min_ind = np.argmin(deconvolved.deconvolved_mse_)
-        ax.loglog(deconvolved.regularizer_widths[min_ind], deconvolved_rmse[min_ind], marker='x', color=line[0].get_color())
+        line = ax.loglog(deconvolved.regularizer_widths[1:], deconvolved_rmse[1:], label=deconvolved_label)
+        min_ind = np.argmin(deconvolved.deconvolved_mse_[1:])
+        ax.loglog(deconvolved.regularizer_widths[1:][min_ind], deconvolved_rmse[1:][min_ind], marker='x', color=line[0].get_color())
 
 def _reconvolved_mse_plot(ax, deconvolved_list, deconvolved_labels, norm):
     for deconvolved, deconvolved_label in zip(deconvolved_list, deconvolved_labels):
         reconvolved_rmse = np.sqrt(deconvolved.reconvolved_mse_)/norm
-        line = ax.loglog(deconvolved.regularizer_widths, reconvolved_rmse, label=deconvolved_label)
-        min_ind = np.argmin(deconvolved.reconvolved_mse_)
-        ax.loglog(deconvolved.regularizer_widths[min_ind], reconvolved_rmse[min_ind], marker='x', color=line[0].get_color())
+        line = ax.loglog(deconvolved.regularizer_widths[1:], reconvolved_rmse[1:], label=deconvolved_label)
+        min_ind = np.argmin(deconvolved.reconvolved_mse_[1:])
+        ax.loglog(deconvolved.regularizer_widths[1:][min_ind], reconvolved_rmse[1:][min_ind], marker='x', color=line[0].get_color())
 
 def _cv_plot(ax, deconvolved_list, deconvolved_labels, norm):
     for deconvolved, deconvolved_label in zip(deconvolved_list, deconvolved_labels):
         cv_rmse = np.sqrt(deconvolved.cv_)/norm
-        line = ax.loglog(deconvolved.regularizer_widths, cv_rmse-np.amin(cv_rmse)+1E-7, label=deconvolved_label)
-        min_ind = np.argmin(deconvolved.cv_)
-        ax.loglog(deconvolved.regularizer_widths[min_ind], cv_rmse[min_ind]-np.amin(cv_rmse)+1E-7, marker='x', color=line[0].get_color())
+        line = ax.loglog(deconvolved.regularizer_widths[1:], cv_rmse[1:]-np.amin(cv_rmse[1:])+1E-7, label=deconvolved_label)
+        min_ind = np.argmin(deconvolved.cv_[1:])
+        ax.loglog(deconvolved.regularizer_widths[1:][min_ind], cv_rmse[1:][min_ind]-np.amin(cv_rmse[1:])+1E-7, marker='x', color=line[0].get_color())
 
 def _format_figure(axs):
     axs[1, 0].set_xlim((396, 414))

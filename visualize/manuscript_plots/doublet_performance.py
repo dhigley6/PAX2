@@ -8,6 +8,7 @@ Created on Mon Aug 19 17:41:16 2019
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from sklearn.metrics import mean_squared_error
 
 import pax_simulation_analysis
@@ -40,7 +41,7 @@ def make_figure():
 def _make_spectra_plot(ax, data_list):
     for ind, data in enumerate(data_list):
         data = data['deconvolver']
-        offset = ind*1.0
+        offset = 2.0-ind*1.0
         norm = 1.1*np.amax(data.ground_truth_y)
         energy_loss = np.flipud(data.deconvolved_x-778)
         ax.plot(energy_loss, 
@@ -70,16 +71,20 @@ def _get_specified_data(separation_list, log10_num_electrons_list):
     
 def _format_figure(axs):
     axs[0].set_xlim((-0.1, 0.15))
+    axs[0].set_ylim((-0.1, 3.4))
     axs[0].invert_xaxis()
     axs[0].set_xlabel('Energy Loss (eV)')
     axs[0].set_ylabel('Intensity (a.u.)')
     axs[1].set_xlabel('Doublet Separation (eV)')
+    legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
+                       Line2D([0], [0], color='r', label='Deconvolved')]
+    axs[0].legend(handles=legend_elements, loc='upper left', frameon=False, ncol=2)
     #axs[1].set_ylabel('Minimum Counts\nTo Resolve')
     axs[1].set_ylabel('Minimum Counts for\nNorm. RMSE < 0.1')
     for ind, log10_num_electrons in enumerate(SPECTRA_LOG10_NUM_ELECTRONS_LIST):
-        axs[0].text(0.125, 0.25+ind, '10$^'+str(int(log10_num_electrons))+'$')
+        axs[0].text(0.125, 2+0.25-ind, '10$^'+str(int(log10_num_electrons))+'$')
     plt.tight_layout()
-    axs[0].text(0.9, 0.9, 'A', fontsize=10, weight='bold', horizontalalignment='center',
+    axs[0].text(0.9, 0.1, 'A', fontsize=10, weight='bold', horizontalalignment='center',
                    transform=axs[0].transAxes)
     axs[1].text(0.9, 0.9, 'B', fontsize=10, weight='bold', horizontalalignment='center',
        transform=axs[1].transAxes)
@@ -104,7 +109,7 @@ def _min_rmse_plot(ax, data_list_list, separations, log10_num_electrons):
             min_threshold_num_electrons = np.nan
         print(min_threshold_num_electrons)
         min_rmse_list.append(min_threshold_num_electrons)
-    ax.semilogy(separations, min_rmse_list, marker='o')
+    ax.semilogy(separations, min_rmse_list, marker='o', color='k', linestyle='None')
 
     
 def _min_resolved_plot(ax, data_list_list, separations, log10_num_electrons):

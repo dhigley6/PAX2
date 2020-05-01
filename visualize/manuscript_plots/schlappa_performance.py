@@ -45,8 +45,8 @@ def make_figure():
     _fwhm_plot(ax_fwhm, num_counts, data_list)
     axs = [ax_spectra, ax_deconvolved_mse, ax_fwhm]
     _format_figure(axs, spectra_num_counts)
-    #file_name = f'{FIGURES_DIR}/pax_performance1.eps'
-    #plt.savefig(file_name, dpi=600)
+    file_name = f'{FIGURES_DIR}/pax_performance1.eps'
+    plt.savefig(file_name, dpi=600)
     
 def _spectra_plot(ax, data_list):
     for ind, data in enumerate(data_list):
@@ -96,6 +96,7 @@ def _format_figure(axs, spectra_counts):
     axs[0].set_xlim((-1, 7))
     axs[0].invert_xaxis()
     axs[0].set_ylim((-0.2, 3.5))
+    axs[2].set_ylim((0, 0.4))
     axs[0].set_xlabel('Energy Loss (eV)')
     axs[0].set_ylabel('Intensity')
     axs[1].set_ylabel('Norm. RMS\nError')
@@ -105,9 +106,6 @@ def _format_figure(axs, spectra_counts):
     legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
                        Line2D([0], [0], color='r', label='Deconvolved')]
     axs[0].legend(handles=legend_elements, loc='upper left', frameon=False)
-    legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
-                       Line2D([0], [0], color='r', label='Deconvolved')]
-    axs[2].legend(handles=legend_elements, loc='upper center', frameon=False)
     axs[0].text(-0.25, 2.3, '10$^'+str(int(spectra_counts[2]))+'$', ha='center', transform=axs[0].transData)
     axs[0].text(-0.25, 1.3, '10$^'+str(int(spectra_counts[1]))+'$', ha='center', transform=axs[0].transData)
     axs[0].text(-0.25, 0.3, '10$^'+str(int(spectra_counts[0]))+'$', ha='center', transform=axs[0].transData)

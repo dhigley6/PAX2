@@ -35,7 +35,7 @@ def run_test(log10_num_electrons=10, rixs='schlappa', photoemission='ag'):
     plot_result.make_plot(data['deconvolver'])
 
 def convergence_test_schlappa():
-    assess_convergence.run_pax_preset(8.0, rixs='schlappa', photoemission='ag', **SCHLAPPA_PARAMETERS)
+    assess_convergence.run_pax_preset(7.0, rixs='schlappa', photoemission='ag', **SCHLAPPA_PARAMETERS)
 
 def convergence_data_gen():
     parameters = SCHLAPPA_PARAMETERS
