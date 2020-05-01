@@ -43,13 +43,15 @@ def _make_deconvolved_mse_plot(ax, data_list):
 def _make_val_mse_plot(ax, data_list):
     for ind, data in enumerate(data_list):
         ax.plot(data[:, 1], data[:, 2], label=str(REGULARIZATION_PARAMETERS[ind]))
+    ax.axvline(77*4, color='k', linestyle='--')
 
 def _format_figure(axs):
+    axs[1].annotate('stopping\ncriterion met', (308, 0.106), xytext=(508, 0.106), arrowprops=dict(arrowstyle="->"), verticalalignment='center')
     axs[0].set_ylim((0.05, 0.35))
     axs[1].set_ylim((0.101, 0.108))
-    axs[0].legend(loc='upper right', ncol=2)
-    axs[0].set_ylabel('Deconvolved MSE')
-    axs[1].set_ylabel('Val.\nReconstruction MSE')
+    axs[0].legend(loc='upper right', ncol=2, title='Regularization\nStrength (eV)')
+    axs[0].set_ylabel('Deconvolved\nMSE (a.u.)')
+    axs[1].set_ylabel('Val. Reconstruction\nMSE (a.u.)')
     axs[1].set_xlabel('Iterations')
     axs[0].text(0.9, 0.05, 'A', fontsize=10, weight='bold', horizontalalignment='center',
                    transform=axs[0].transAxes)
