@@ -73,8 +73,8 @@ def _fwhm_plot(ax, num_electrons, data_list):
         deconvolved = data['deconvolver']
         fwhm = _approximate_fwhm(deconvolved.deconvolved_x, deconvolved.deconvolved_y_)
         fwhm_list.append(fwhm)
-    ax.semilogx(num_electrons, fwhm_list, color='r')
-    ax.axhline(0.08325, linestyle='--', color='k')
+    ax.semilogx(num_electrons, 1E3*np.array(fwhm_list), color='r')
+    ax.axhline(83.25, linestyle='--', color='k')
 
 def _approximate_fwhm(deconvolved_x, deconvolved_y, center=0.0, width=1.0):
     loss = deconvolved_x-778
@@ -96,11 +96,11 @@ def _format_figure(axs, spectra_counts):
     axs[0].set_xlim((-1, 7))
     axs[0].invert_xaxis()
     axs[0].set_ylim((-0.2, 3.5))
-    axs[2].set_ylim((0, 0.4))
+    axs[2].set_ylim((0, 400))
     axs[0].set_xlabel('Energy Loss (eV)')
-    axs[0].set_ylabel('Intensity')
-    axs[1].set_ylabel('Norm. RMS\nError')
-    axs[2].set_ylabel('FWHM of\nFirst Peak')
+    axs[0].set_ylabel('Intensity (a.u.)')
+    axs[1].set_ylabel('Norm. RMS\nError (a.u.)')
+    axs[2].set_ylabel('FWHM of\nFirst Peak (meV)')
     axs[2].set_xlabel('Detected Electrons')
     plt.setp(axs[1].get_xticklabels(), visible=False)
     legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
