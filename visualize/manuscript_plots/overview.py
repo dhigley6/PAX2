@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @author: dhigley
-Make an overview plot of how PAX works
+Make an overview plot of how PAX works for Schlappa RIXS and Ag photoemission model case
 """
 
 import numpy as np

@@ -62,6 +62,10 @@ def run_schlappa_ag_analysis():
     for log10_num_electrons in schlappa_performance.LOG10_COUNTS_LIST:
         _ = pax_simulation_analysis.run(log10_num_electrons, rixs='schlappa', photoemission='ag', **SCHLAPPA_PARAMETERS)
 
+def run_schlappa_ag_with_extra_analysis():
+    for log10_num_electrons in schlappa_performance.LOG10_COUNTS_LIST:
+        _ = pax_simulation_analysis.run_with_extra(log10_num_electrons, rixs='schlappa', photoemission='ag', num_analyses=25, **SCHLAPPA_PARAMETERS)
+
 def run_doublet_fermi_analysis():
     parameters = {
         'energy_loss': np.arange(-0.5, 0.5, 0.001),

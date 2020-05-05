@@ -18,21 +18,29 @@ import LRDeconvolve
 START_REGULARIZER = 0
 
 def run_sim():
+    results_4 = _run_deconvolution_set(4)
+    results_7 = _run_deconvolution_set(7)
+    results = {
+        '4': results_4,
+        '7': results_7}
+    file_name = 'simulated_results/test.pickle'
+    with open(file_name, 'wb') as f:
+        pickle.dump(results, f)
+
+def _run_deconvolution_set(log10_num_electrons):
     parameters = pax_simulation_analysis.DEFAULT_PARAMETERS
     impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
-        4,
+        log10_num_electrons,
         'schlappa',
         'ag',
         parameters['simulations'],
         parameters['energy_loss']
     )
     regularizer_widths = parameters['regularizer_widths']
-    regularizer_widths = np.append([0], regularizer_widths)
-    iterations = 1E2
-    results = Parallel(n_jobs=-1)(delayed(run_single_deconvolution)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations) for regularizer_width in regularizer_widths)
-    file_name = 'simulated_results/test.pickle'
-    with open(file_name, 'wb') as f:
-        pickle.dump(results, f)
+    iterations = 1E5
+    results = Parallel(n_jobs=-1)(delayed(_run_single_deconvolution)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations) for regularizer_width in regularizer_widths)
+    return results
+
 
 def load_sim():
     file_name = 'simulated_results/test.pickle'
@@ -40,7 +48,7 @@ def load_sim():
         results = pickle.load(f)
     return results
     
-def run_single_deconvolution(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations):
+def _run_single_deconvolution(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations):
     deconvolver = LRDeconvolve.LRFisterDeconvolve(
         impulse_response['x'],
         impulse_response['y'],
@@ -54,67 +62,64 @@ def run_single_deconvolution(impulse_response, pax_spectra, xray_xy, regularizer
 
 def make_figure():
     results = load_sim()
-    f, axs = plt.subplots(1, 2, sharex=True, sharey=True)
-    log10_electrons_to_plot = [3.0, 5.0, 7.0]
-    data_sets = []
-    data_labels = []
-    for i in log10_electrons_to_plot:
-        data = pax_simulation_analysis.load(i)
-        data_sets.append(data)
-        data_labels.append('10$^'+str(int(i))+'$')
-    _, axs = plt.subplots(3, 1, sharex=True, figsize=(3.37, 4))
-    _deconvolved_mse_plot(axs[0], data_sets, data_labels)
-    _reconvolved_mse_plot(axs[1], data_sets, data_labels)
-    _cv_plot(axs[2], data_sets, data_labels)
-    _format_figure(axs)
-    file_name = f'{FIGURES_DIR}/effect_of_regularization_quant.eps'
-    plt.savefig(file_name, dpi=600)
-    
-def _deconvolved_mse_plot(ax, data_sets, data_labels):
-    for data, data_label in zip(data_sets, data_labels):
-        deconvolved_mse = postprocess.deconvolved_mse_data_sets(data)
-        line = ax.loglog(data[0]['regularizer_widths'][START_REGULARIZER:], deconvolved_mse,
-                  label=data_label)
-        min_ind = np.argmin(deconvolved_mse)
-        ax.loglog(data[0]['regularizer_widths'][START_REGULARIZER:][min_ind],
-                  deconvolved_mse[min_ind], marker='x',
-                  color=line[0].get_color())
-        
-def _reconvolved_mse_plot(ax, data_sets, data_labels):
-    for data, data_label in zip(data_sets, data_labels):
-        reconvolved_mse = postprocess.reconvolved_mse_data_sets(data)
-        line = ax.loglog(data[0]['regularizer_widths'][START_REGULARIZER:], reconvolved_mse,
-                  label=data_label)
-        min_ind = np.argmin(reconvolved_mse)
-        ax.loglog(data[0]['regularizer_widths'][START_REGULARIZER:][min_ind],
-                  reconvolved_mse[START_REGULARIZER:][min_ind], marker='x',
-                  color=line[0].get_color())
+    f, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(3.37, 3.75))
+    to_plot_4 = list(results['4'][i] for i in [2, 5, 9])
+    to_plot_7 = list(results['7'][i] for i in [2, 5, 9])
+    _regularization_offset_plot(axs[0], to_plot_4)
+    _regularization_offset_plot(axs[1], to_plot_7)
+    _format_figure(f, axs)
+    plt.savefig('figures/effect_of_regularization_spectra.eps', dpi=600)
 
-def _cv_plot(ax, data_sets, data_labels):
-    for data, data_label in zip(data_sets, data_labels):
-        cv_set = postprocess.cv(data)
-        line = ax.loglog(data[0]['regularizer_widths'][START_REGULARIZER:], cv_set,
-           label=data_label)
-        min_ind = np.argmin(cv_set)
-        ax.loglog(data[0]['regularizer_widths'][START_REGULARIZER:][min_ind],
-            cv_set[min_ind], marker='x',
-            color=line[0].get_color())
-    
-def _format_figure(axs):
-    axs[0].set_ylabel('MSE')
-    axs[1].set_ylabel('Reconvolved\nMSE')
-    axs[2].set_ylabel('CV')
-    axs[2].set_xlabel('Regularization Parameter Width (eV)')
-    axs[0].text(0.9, 0.2, 'A', fontsize=10, weight='bold', horizontalalignment='center',
+def _format_figure(f, axs):
+    axs[0].set_xlim((771, 779))
+    axs[0].set_ylim((-0.2, 4.5))
+    axs[0].set_ylabel('Intensity (a.u.)')
+    axs[0].set_xlabel('.', color=(0, 0, 0, 0))
+    f.text(0.57, 0.02, 'Photon Energy (eV)', horizontalalignment='center')
+    axs[0].set_title('10$^4$\nElectrons')
+    axs[1].set_title('10$^7$\nElectrons')
+    axs[0].text(0.1, 0.9, 'A', fontsize=10, weight='bold', horizontalalignment='center',
                    transform=axs[0].transAxes)
-    axs[1].text(0.9, 0.2, 'B', fontsize=10, weight='bold', horizontalalignment='center',
+    axs[1].text(0.9, 0.9, 'B', fontsize=10, weight='bold', horizontalalignment='center',
        transform=axs[1].transAxes)
-    axs[2].text(0.9, 0.2, 'C', fontsize=10, weight='bold', horizontalalignment='center',
-       transform=axs[2].transAxes)
-    plt.tight_layout(h_pad=0)
-    for ax in axs:
-        box = ax.get_position()
-        ax.set_position([box.x0, box.y0, box.width*0.75, box.height])
-    axs[1].legend(loc='upper left', fontsize=9, frameon=True,
-       handlelength=0.8, title='Detected\nElectrons',
-       bbox_to_anchor=(1, 0.5))
+    plt.tight_layout()
+    regularizer_widths = pax_simulation_analysis.DEFAULT_PARAMETERS['regularizer_widths']
+    regularizers_to_plot = list(regularizer_widths[i] for i in [2, 5, 9])
+    regularizer_labels = [
+        r'$\sigma = '+str(round(regularizers_to_plot[0]*1E3, 1))+'$ meV',
+        r'$\sigma = '+str(round(regularizers_to_plot[1]*1E3, 1))+'$ meV',
+        r'$\sigma = '+str(round(regularizers_to_plot[2]*1E3, 1))+'$ meV'
+    ]
+    regularizer_label_heights = [0.15, 0.43, 0.73]
+    for regularizer_label, height in zip(regularizer_labels, regularizer_label_heights):
+        axs[1].text(1.1, height, regularizer_label, ha='center', clip_on=False,
+            bbox=dict(facecolor='white', edgecolor='none', pad=0),
+            transform=axs[0].transAxes)
+    big_ax = _make_big_dummy_ax(plt.gcf())
+    big_ax.plot([], [], 'k--', label='Ground Truth')
+    big_ax.plot([], [], 'r', label='Deconvolved')
+    #big_ax.legend(loc=(0.38, 0.85), frameon=True, borderpad=0.3,
+    #              framealpha=1, borderaxespad=0.3)
+    big_ax.legend(loc='upper center', frameon=True, borderpad=0.3,
+                  framealpha=1, borderaxespad=0.3)
+    big_ax.set_xticks([])
+    big_ax.set_yticks([])
+
+def _regularization_offset_plot(ax, data_list):
+    for ind, data in enumerate(data_list):
+        offset = 1.4*ind
+        norm = 1.1*np.amax(data.ground_truth_y)
+        ax.plot(data.deconvolved_x, offset+data.deconvolved_y_/norm, 'r', label='Deconvolved')
+        ax.plot(data.deconvolved_x, offset+data.ground_truth_y/norm, 'k--', label='Ground Truth')
+
+def _make_big_dummy_ax(fig):
+    """Make a big dummy axis over the entire figure to use for global labels
+    """
+    dummyax = fig.add_subplot(111, frameon=False)
+    dummyax.spines['top'].set_color('none')
+    dummyax.spines['bottom'].set_color('none')
+    dummyax.spines['left'].set_color('none')
+    dummyax.spines['right'].set_color('none')
+    dummyax.tick_params(labelcolor='none', top='off', left='off', right='off', bottom='off')
+    plt.setp(dummyax.get_yticklabels(), alpha=0)
+    return dummyax

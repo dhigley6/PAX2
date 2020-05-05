@@ -52,6 +52,7 @@ class LRFisterGrid(BaseEstimator):
             n_jobs=-1
         )
         deconvolver_gs.fit(X)
+        self.best_params_ = deconvolver_gs.best_params_
         self.measured_y_ = np.mean(X, axis=0)
         self.deconvolved_y_ = deconvolver_gs.best_estimator_.deconvolved_y_
         self.reconvolved_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')

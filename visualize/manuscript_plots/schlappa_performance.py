@@ -27,13 +27,13 @@ def make_figure():
     data_list = []
     num_counts = []
     for i in log10_counts:
-        data_list.append(pax_simulation_analysis.load(i, rixs='schlappa', photoemission='ag'))
+        data_list.append(pax_simulation_analysis.load_with_extra(i, rixs='schlappa', photoemission='ag'))
         num_counts.append(10**i)
     spectra_log10_counts = [7.0, 5.0, 3.0]
     spectra_data_list = []
     spectra_num_counts = []
     for i in spectra_log10_counts:
-        spectra_data_list.append(pax_simulation_analysis.load(i, rixs='schlappa', photoemission='ag'))
+        spectra_data_list.append(pax_simulation_analysis.load_with_extra(i, rixs='schlappa', photoemission='ag'))
         spectra_num_counts.append(i)
     f = plt.figure(figsize=(3.37, 5.5))
     grid = plt.GridSpec(4, 2)
@@ -50,7 +50,7 @@ def make_figure():
     
 def _spectra_plot(ax, data_list):
     for ind, data in enumerate(data_list):
-        deconvolved = data['deconvolver']
+        deconvolved = data['cv_deconvolver']
         energy_loss = -1*(deconvolved.deconvolved_x-778)
         offset = ind*1.0
         norm = 1.1*np.amax(deconvolved.ground_truth_y)
@@ -60,20 +60,28 @@ def _spectra_plot(ax, data_list):
 def _rmse_plot(ax, num_electrons, data_list):
     norm_rmse_list = []
     for data in data_list:
-        data = data['deconvolver']
-        deconvolved_mse = mean_squared_error(data.deconvolved_y_, data.ground_truth_y)
+        data = data['analyses']
+        mse_list = []
+        for deconvolved in data:
+            mse = mean_squared_error(deconvolved.deconvolved_y_, deconvolved.ground_truth_y)
+            mse_list.append(mse)
+        deconvolved_mse = np.mean(mse_list)
         rmse = np.sqrt(deconvolved_mse)
-        norm_rmse = rmse/np.amax(data.ground_truth_y)
+        norm_rmse = rmse/np.amax(data[0].ground_truth_y)
         norm_rmse_list.append(norm_rmse)
-    ax.loglog(num_electrons, norm_rmse_list, color='r')
+    ax.loglog(num_electrons, norm_rmse_list, color='r', marker='o', markersize=4)
     
 def _fwhm_plot(ax, num_electrons, data_list):
     fwhm_list = []
     for data in data_list:
-        deconvolved = data['deconvolver']
-        fwhm = _approximate_fwhm(deconvolved.deconvolved_x, deconvolved.deconvolved_y_)
+        data = data['analyses']
+        current_fwhms = []
+        for deconvolved in data:
+            fwhm = _approximate_fwhm(deconvolved.deconvolved_x, deconvolved.deconvolved_y_)
+            current_fwhms.append(fwhm)
+        fwhm = np.mean(current_fwhms)
         fwhm_list.append(fwhm)
-    ax.semilogx(num_electrons, 1E3*np.array(fwhm_list), color='r')
+    ax.semilogx(num_electrons, 1E3*np.array(fwhm_list), color='r', marker='o', markersize=4)
     ax.axhline(83.25, linestyle='--', color='k')
 
 def _approximate_fwhm(deconvolved_x, deconvolved_y, center=0.0, width=1.0):
