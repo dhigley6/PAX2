@@ -69,7 +69,7 @@ def _rmse_plot(ax, num_electrons, data_list):
         rmse = np.sqrt(deconvolved_mse)
         norm_rmse = rmse/np.amax(data[0].ground_truth_y)
         norm_rmse_list.append(norm_rmse)
-    ax.loglog(num_electrons, norm_rmse_list, color='r', marker='o', markersize=4)
+    ax.semilogx(num_electrons, norm_rmse_list, color='r', marker='o', markersize=4)
     
 def _fwhm_plot(ax, num_electrons, data_list):
     fwhm_list = []
@@ -104,7 +104,8 @@ def _format_figure(axs, spectra_counts):
     axs[0].set_xlim((-1, 7))
     axs[0].invert_xaxis()
     axs[0].set_ylim((-0.2, 3.5))
-    axs[2].set_ylim((0, 400))
+    axs[1].set_ylim((0, 0.06))
+    axs[2].set_ylim((0, 450))
     axs[0].set_xlabel('Energy Loss (eV)')
     axs[0].set_ylabel('Intensity (a.u.)')
     axs[1].set_ylabel('Norm. RMS\nError (a.u.)')

@@ -32,8 +32,8 @@ def make_figure():
     total_data = _get_total_data()
     _, axs = plt.subplots(2, 1, figsize=(3.37, 4.5))
     _make_spectra_plot(axs[0], spectra_data[0])
-    #_min_resolved_plot(axs[1], total_data, TOTAL_SEPARATION_LIST, TOTAL_LOG10_NUM_ELECTRONS_LIST)
-    _min_rmse_plot(axs[1], total_data, TOTAL_SEPARATION_LIST, TOTAL_LOG10_NUM_ELECTRONS_LIST)
+    _min_resolved_plot(axs[1], total_data, TOTAL_SEPARATION_LIST, TOTAL_LOG10_NUM_ELECTRONS_LIST)
+    #_min_rmse_plot(axs[1], total_data, TOTAL_SEPARATION_LIST, TOTAL_LOG10_NUM_ELECTRONS_LIST)
     _format_figure(axs)
     file_name = f'{FIGURES_DIR}/pax_performance2.eps'
     plt.savefig(file_name, dpi=600)
@@ -80,7 +80,8 @@ def _format_figure(axs):
                        Line2D([0], [0], color='r', label='Deconvolved')]
     axs[0].legend(handles=legend_elements, loc='upper left', frameon=False, ncol=2)
     #axs[1].set_ylabel('Minimum Counts\nTo Resolve')
-    axs[1].set_ylabel('Minimum Counts for\nNorm. RMSE < 0.1')
+    #axs[1].set_ylabel('Minimum Counts for\nNorm. RMSE < 0.1')
+    axs[1].set_ylabel('Minimum Counts for\nPeak Intensity More than\n5x Gap Strength')
     for ind, log10_num_electrons in enumerate(SPECTRA_LOG10_NUM_ELECTRONS_LIST):
         axs[0].text(0.125, 2+0.25-ind, '10$^'+str(int(log10_num_electrons))+'$')
     plt.tight_layout()
@@ -115,10 +116,10 @@ def _min_rmse_plot(ax, data_list_list, separations, log10_num_electrons):
 def _min_resolved_plot(ax, data_list_list, separations, log10_num_electrons):
     min_resolved_list = []
     for data_list, separation in zip(data_list_list, separations):
+        print(separation)
         resolved_list = []
         for ind, data in enumerate(data_list):
             data = data['deconvolver']
-            print(ind, separation)
             resolved = is_doublet_resolved(
                     data.deconvolved_x,
                     data.deconvolved_y_,
@@ -133,7 +134,34 @@ def _min_resolved_plot(ax, data_list_list, separations, log10_num_electrons):
         print(min_resolved_num_electrons)
         min_resolved_list.append(min_resolved_num_electrons)
     ax.semilogy(separations, min_resolved_list, marker='o')
-    
+
+def is_doublet_resolved(spectrum_x, spectrum_y, pos1, pos2):
+    spread = np.abs(pos2-pos1)
+    middle = np.mean([pos2, pos1])
+    int_range_1 = (spectrum_x > pos1-spread*0.1) & (spectrum_x < pos1+spread*0.1)
+    int_range_2 = (spectrum_x > pos2-spread*0.1) & (spectrum_x < pos2+spread*0.1)
+    int_range_gap = (spectrum_x > middle-spread*0.1) & (spectrum_x < middle+spread*0.1)
+    int_1 = np.mean(spectrum_y[int_range_1])
+    int_2 = np.mean(spectrum_y[int_range_2])
+    int_gap = np.mean(spectrum_y[int_range_gap])
+    int_peaks = np.mean([int_1, int_2])
+    sum_peaks = np.sum(spectrum_y[int_range_1])+np.sum(spectrum_y[int_range_2])
+    sum_total = np.sum(spectrum_y)
+    resolved = (int_1 > 5*int_gap) & (int_2 > 5*int_gap) & (sum_peaks > 0.7*sum_total)
+    print(sum_peaks/sum_total)
+    print(resolved)
+    print(spread)
+    if ((spread > 0.04) & (spread < 0.06)):
+        plt.figure()
+        plt.plot(spectrum_x, int_range_1)
+        plt.plot(spectrum_x, int_range_2)
+        plt.plot(spectrum_x, int_range_gap)
+        plt.plot(spectrum_x, spectrum_y/np.amax(spectrum_y))
+        plt.title(str(resolved))
+    return resolved
+
+
+"""
 def is_doublet_resolved(spectrum_x, spectrum_y, pos1, pos2):
     ind1 = np.argmin(np.abs(spectrum_x-pos1))
     ind2 = np.argmin(np.abs(spectrum_x-pos2))
@@ -150,3 +178,4 @@ def is_doublet_resolved(spectrum_x, spectrum_y, pos1, pos2):
         return True
     else:
         return False
+"""
