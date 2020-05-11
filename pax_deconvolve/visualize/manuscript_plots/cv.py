@@ -5,11 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 
-from pax_simulations import simulate_pax
-import pax_simulation_analysis
-import visualize.set_plot_params
-visualize.set_plot_params.init_paper_small()
-from visualize.manuscript_plots import schlappa_performance
+from pax_deconvolve.pax_simulations import simulate_pax
+from pax_deconvolve import pax_simulation_analysis
+from pax_deconvolve.visualize import set_plot_params
+set_plot_params.init_paper_small()
+from pax_deconvolve.visualize.manuscript_plots import schlappa_performance
 
 FIGURES_DIR = 'figures'
 LOG10_ELECTRONS_TO_PLOT = [3.0, 5.0, 7.0]
