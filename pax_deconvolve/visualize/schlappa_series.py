@@ -6,7 +6,7 @@ as a function of the number of detected electrons
 import numpy as np 
 import matplotlib.pyplot as plt
 
-from pax_simulations import run_analyze_save_load
+from pax_deconvolve.pax_simulations import run_analyze_save_load
 
 NUM_ELECTRONS = np.logspace(3, 7, 5)
 

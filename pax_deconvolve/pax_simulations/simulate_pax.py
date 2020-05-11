@@ -9,8 +9,8 @@ Calculate simulated PAX spectra with Poisson statistics.
 import numpy as np
 from scipy.signal import convolve
 
-from pax_simulations import model_rixs
-from pax_simulations import model_photoemission
+from pax_deconvolve.pax_simulations import model_rixs
+from pax_deconvolve.pax_simulations import model_photoemission
 
 def simulate_from_presets(total_log10_num_electrons, rixs, photoemission, num_simulations, energy_loss):
     """Simulate PAX spectra using preset options for RIXS and photoemission spectra

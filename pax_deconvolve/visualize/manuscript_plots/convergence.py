@@ -4,8 +4,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 
-import visualize.set_plot_params
-visualize.set_plot_params.init_paper_small()
+from pax_deconvolve.visualize import set_plot_params
+set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'
 REGULARIZATION_PARAMETERS = [0.0028, 0.0046, 0.0077, 0.013]

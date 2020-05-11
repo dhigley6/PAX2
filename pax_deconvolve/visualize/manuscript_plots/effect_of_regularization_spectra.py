@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 import pickle
 from joblib import Parallel, delayed
 
-import visualize.set_plot_params
-visualize.set_plot_params.init_paper_small()
-import pax_simulation_analysis
-from pax_simulations import simulate_pax
-import LRDeconvolve
+from pax_deconvolve.visualize import set_plot_params
+set_plot_params.init_paper_small()
+from pax_deconvolve import pax_simulation_analysis
+from pax_deconvolve.pax_simulations import simulate_pax
+from pax_deconvolve import LRDeconvolve
 
 START_REGULARIZER = 0
 

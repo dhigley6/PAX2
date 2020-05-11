@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error
 from scipy.signal import convolve
 from sklearn.model_selection import GridSearchCV
 
-import deconvolution_metrics
+from pax_simulation_analysis import deconvolution_metrics
 
 LOGDIR = 'logdir/'
 

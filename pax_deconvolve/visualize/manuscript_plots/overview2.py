@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.patheffects as PathEffects
 
-from pax_simulations import model_photoemission, model_rixs, simulate_pax
-from visualize import set_plot_params
+from pax_deconvolve.pax_simulations import model_photoemission, model_rixs, simulate_pax
+from pax_deconvolve.visualize import set_plot_params
 set_plot_params.init_paper_small()
 
 def make_plot():

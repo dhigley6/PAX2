@@ -18,9 +18,9 @@ Approximate convergence procedure:
 import numpy as np
 from joblib import Parallel, delayed
 
-import LRDeconvolve
-from pax_simulations import simulate_pax
-import pax_simulation_analysis
+from pax_deconvolve import LRDeconvolve
+from pax_deconvolve.pax_simulations import simulate_pax
+from pax_deconvolve import pax_simulation_analysis
 DEFAULT_PARAMETERS = pax_simulation_analysis.DEFAULT_PARAMETERS
 
 def run_pax_preset(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):

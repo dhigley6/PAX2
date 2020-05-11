@@ -11,8 +11,8 @@ from sklearn.model_selection import GridSearchCV
 import pprint
 from joblib import Parallel, delayed
 
-from pax_simulations import simulate_pax
-import LRDeconvolve
+from pax_deconvolve.pax_simulations import simulate_pax
+from pax_deconvolve import LRDeconvolve
 
 # Set global simulation parameters
 PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), 'simulated_results')

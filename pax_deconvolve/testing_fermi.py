@@ -4,7 +4,7 @@ Testing performance of PAX with model Fermi edge photoemission converter
 
 import numpy as np
 
-from pax_simulations import run_analyze_save_load
+from pax_deconvolve.pax_simulations import run_analyze_save_load
 
 # Simulation parameters:
 PARAMETERS = {

@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from sklearn.metrics import mean_squared_error
 
-import pax_simulation_analysis
-import visualize.set_plot_params
+from pax_deconvolve import pax_simulation_analysis
+from pax_deconvolve.visualize import set_plot_params
 visualize.set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'
