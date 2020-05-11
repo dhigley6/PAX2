@@ -19,3 +19,4 @@ simulated_results/*
 logdir*
 figures*
 data/con*
+testing_cvx.py

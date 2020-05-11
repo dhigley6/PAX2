@@ -3,7 +3,7 @@
 """
 Created on Wed Aug 21 10:42:40 2019
 @author: dhigley
-Routines for setting plot parameters to be a specific way
+Routines for setting plot parameters for different contexts
 """
 
 import matplotlib.pyplot as plt
