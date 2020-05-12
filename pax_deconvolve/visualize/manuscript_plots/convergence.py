@@ -8,7 +8,7 @@ from pax_deconvolve.visualize import set_plot_params
 set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'
-REGULARIZATION_PARAMETERS = [0.0028, 0.0046, 0.0077, 0.013]
+REGULARIZATION_PARAMETERS = [0.0028, 0.0046, 0.0077, 0.013] # regularization parameters to plot
 
 def make_figure():
     _, axs = plt.subplots(2, 1, sharex=True, figsize=(3.37, 3.5))

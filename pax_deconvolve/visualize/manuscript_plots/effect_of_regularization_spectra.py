@@ -11,7 +11,7 @@ from joblib import Parallel, delayed
 
 from pax_deconvolve.visualize import set_plot_params
 set_plot_params.init_paper_small()
-from pax_deconvolve import pax_simulation_analysis
+from pax_deconvolve import pax_simulation_pipeline
 from pax_deconvolve.pax_simulations import simulate_pax
 from pax_deconvolve import LRDeconvolve
 
@@ -23,12 +23,12 @@ def run_sim():
     results = {
         '4': results_4,
         '7': results_7}
-    file_name = 'simulated_results/test.pickle'
+    file_name = 'pax_deconvolve/simulated_results/test.pickle'
     with open(file_name, 'wb') as f:
         pickle.dump(results, f)
 
 def _run_deconvolution_set(log10_num_electrons):
-    parameters = pax_simulation_analysis.DEFAULT_PARAMETERS
+    parameters = pax_simulation_pipeline.DEFAULT_PARAMETERS
     impulse_response, pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
         log10_num_electrons,
         'schlappa',
@@ -43,7 +43,7 @@ def _run_deconvolution_set(log10_num_electrons):
 
 
 def load_sim():
-    file_name = 'simulated_results/test.pickle'
+    file_name = 'pax_deconvolve/simulated_results/test.pickle'
     with open(file_name, 'rb') as f:
         results = pickle.load(f)
     return results
@@ -83,7 +83,7 @@ def _format_figure(f, axs):
     axs[1].text(0.9, 0.9, 'B', fontsize=10, weight='bold', horizontalalignment='center',
        transform=axs[1].transAxes)
     plt.tight_layout()
-    regularizer_widths = pax_simulation_analysis.DEFAULT_PARAMETERS['regularizer_widths']
+    regularizer_widths = pax_simulation_pipeline.DEFAULT_PARAMETERS['regularizer_widths']
     regularizers_to_plot = list(regularizer_widths[i] for i in [2, 5, 9])
     regularizer_labels = [
         r'$\sigma = '+str(round(regularizers_to_plot[0]*1E3, 1))+'$ meV',
@@ -98,8 +98,6 @@ def _format_figure(f, axs):
     big_ax = _make_big_dummy_ax(plt.gcf())
     big_ax.plot([], [], 'k--', label='Ground Truth')
     big_ax.plot([], [], 'r', label='Deconvolved')
-    #big_ax.legend(loc=(0.38, 0.85), frameon=True, borderpad=0.3,
-    #              framealpha=1, borderaxespad=0.3)
     big_ax.legend(loc='upper center', frameon=True, borderpad=0.3,
                   framealpha=1, borderaxespad=0.3)
     big_ax.set_xticks([])

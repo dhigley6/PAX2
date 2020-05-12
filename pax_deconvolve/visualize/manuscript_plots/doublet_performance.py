@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from sklearn.metrics import mean_squared_error
 
-from pax_deconvolve import pax_simulation_analysis
+from pax_deconvolve import pax_simulation_pipeline
 from pax_deconvolve.visualize import set_plot_params
 set_plot_params.init_paper_small()
 
@@ -64,7 +64,7 @@ def _get_specified_data(separation_list, log10_num_electrons_list):
     for separation in separation_list:
         data_list = []
         for log10_num_electrons in log10_num_electrons_list:
-            data = pax_simulation_analysis.load(log10_num_electrons, rixs=['doublet', separation], photoemission='fermi')
+            data = pax_simulation_pipeline.load(log10_num_electrons, rixs=['doublet', separation], photoemission='fermi')
             data_list.append(data)
         data_list_list.append(data_list)
     return data_list_list
@@ -79,8 +79,6 @@ def _format_figure(axs):
     legend_elements = [Line2D([0], [0], color='k', linestyle='--', label='Ground Truth'),
                        Line2D([0], [0], color='r', label='Deconvolved')]
     axs[0].legend(handles=legend_elements, loc='upper left', frameon=False, ncol=2)
-    #axs[1].set_ylabel('Minimum Counts\nTo Resolve')
-    #axs[1].set_ylabel('Minimum Counts for\nNorm. RMSE < 0.1')
     axs[1].set_ylabel('Minimum Counts for\nPeak Intensity More than\n5x Gap Strength')
     for ind, log10_num_electrons in enumerate(SPECTRA_LOG10_NUM_ELECTRONS_LIST):
         axs[0].text(0.125, 2+0.25-ind, '10$^'+str(int(log10_num_electrons))+'$')
@@ -118,7 +116,7 @@ def _min_resolved_plot(ax, data_list_list, separations, log10_num_electrons):
     for data_list, separation in zip(data_list_list, separations):
         print(separation)
         resolved_list = []
-        for ind, data in enumerate(data_list):
+        for data in data_list:
             data = data['deconvolver']
             resolved = is_doublet_resolved(
                     data.deconvolved_x,
@@ -159,23 +157,3 @@ def is_doublet_resolved(spectrum_x, spectrum_y, pos1, pos2):
         plt.plot(spectrum_x, spectrum_y/np.amax(spectrum_y))
         plt.title(str(resolved))
     return resolved
-
-
-"""
-def is_doublet_resolved(spectrum_x, spectrum_y, pos1, pos2):
-    ind1 = np.argmin(np.abs(spectrum_x-pos1))
-    ind2 = np.argmin(np.abs(spectrum_x-pos2))
-    mid_point = np.mean([ind1, ind2])
-    range = ind2-ind1
-    high_point = int(mid_point+(range/10))
-    low_point = int(mid_point-(range/10))
-    first_peak_value = spectrum_y[ind1]
-    second_peak_value = spectrum_y[ind2]
-    mid_range_value = np.mean(spectrum_y[low_point:high_point])
-    min_peak_value = min(first_peak_value, second_peak_value)
-    between_peaks = spectrum_y[ind1:ind2]
-    if mid_range_value < 0.05*min_peak_value:
-        return True
-    else:
-        return False
-"""

@@ -7,13 +7,15 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from sklearn.metrics import mean_squared_error
 
-from pax_deconvolve import pax_simulation_analysis
+from pax_deconvolve import pax_simulation_pipeline
 from pax_deconvolve.visualize import set_plot_params
 set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'
+# Below are the 
 LOG10_COUNTS_LIST = [7.0, 6.5, 6.0, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5]
 
+# Below are the parameters to run the simulations with
 SCHLAPPA_PARAMETERS = {
     'energy_loss': np.arange(-8, 10, 0.01),
     'iterations': int(1E5),
@@ -22,18 +24,25 @@ SCHLAPPA_PARAMETERS = {
     'regularizer_widths': np.logspace(-3, -1, 10)
 }
 
+def run_schlappa_ag_with_extra_analysis():
+    """Run analysis for making figure
+    """
+    for log10_num_electrons in [6.5]:
+        _ = pax_simulation_pipeline.run_with_extra(log10_num_electrons, rixs='schlappa', photoemission='ag', num_analyses=25, **SCHLAPPA_PARAMETERS)
+        print('Completed '+str(log10_num_electrons))
+
 def make_figure():
     log10_counts = LOG10_COUNTS_LIST
     data_list = []
     num_counts = []
     for i in log10_counts:
-        data_list.append(pax_simulation_analysis.load_with_extra(i, rixs='schlappa', photoemission='ag'))
+        data_list.append(pax_simulation_pipeline.load_with_extra(i, rixs='schlappa', photoemission='ag'))
         num_counts.append(10**i)
     spectra_log10_counts = [7.0, 5.0, 3.0]
     spectra_data_list = []
     spectra_num_counts = []
     for i in spectra_log10_counts:
-        spectra_data_list.append(pax_simulation_analysis.load_with_extra(i, rixs='schlappa', photoemission='ag'))
+        spectra_data_list.append(pax_simulation_pipeline.load_with_extra(i, rixs='schlappa', photoemission='ag'))
         spectra_num_counts.append(i)
     f = plt.figure(figsize=(3.37, 5.5))
     grid = plt.GridSpec(4, 2)
@@ -77,14 +86,16 @@ def _fwhm_plot(ax, num_electrons, data_list):
         data = data['analyses']
         current_fwhms = []
         for deconvolved in data:
-            fwhm = _approximate_fwhm(deconvolved.deconvolved_x, deconvolved.deconvolved_y_)
+            fwhm = _get_fwhm(deconvolved.deconvolved_x, deconvolved.deconvolved_y_)
             current_fwhms.append(fwhm)
         fwhm = np.mean(current_fwhms)
         fwhm_list.append(fwhm)
     ax.semilogx(num_electrons, 1E3*np.array(fwhm_list), color='r', marker='o', markersize=4)
     ax.axhline(83.25, linestyle='--', color='k')
 
-def _approximate_fwhm(deconvolved_x, deconvolved_y, center=0.0, width=1.0):
+def _get_fwhm(deconvolved_x, deconvolved_y, center=0.0, width=1.0):
+    """Return FWHM of loss peak at specified location
+    """
     loss = deconvolved_x-778
     loss_in_range = [(loss > (center-width/2)) & (loss < (center+width/2))]
     peak_location = loss[loss_in_range][np.argmax(deconvolved_y[loss_in_range])]

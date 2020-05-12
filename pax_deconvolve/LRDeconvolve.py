@@ -1,5 +1,14 @@
 """
-Lucy-Richardson deconvolution and variants
+Classes for regularized scaled gradient deconvolution
+These are equivalent to regularized Lucy-Richardson deconvolution in the case
+that the impulse response function is negligible at the boundaries.
+
+The regularization we employed here was originally suggested by Fister et al.
+for regularizing Lucy-Richardson deconvolution. This consists of convolving
+the estimate of the deconvolved signal with a Gaussian after each iteration
+of deconvolution. The width of the Gaussian sets the strength of the regularizaion.
+See the below reference for more details:
+T. T. Fister et al. Phys. Rev. B 75, 174106 (2007)
 """
 
 import numpy as np
@@ -9,11 +18,13 @@ from sklearn.metrics import mean_squared_error
 from scipy.signal import convolve
 from sklearn.model_selection import GridSearchCV
 
-from pax_deconvolve import deconvolution_metrics
+from pax_deconvolve.deconvolution import deconvolution_metrics
 
 LOGDIR = 'logdir/'
 
 class LRFisterGrid(BaseEstimator):
+    """Fister-regularized deconvolution with regularization chosen by cross validation
+    """
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_widths=[0.01, 0.1], iterations=1E3, ground_truth_y=None, cv=5):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
