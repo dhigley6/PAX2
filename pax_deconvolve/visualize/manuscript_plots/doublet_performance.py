@@ -12,7 +12,7 @@ from matplotlib.lines import Line2D
 from sklearn.metrics import mean_squared_error
 
 from pax_deconvolve import pax_simulation_pipeline
-from pax_deconvolve.visualize import set_plot_params
+from pax_deconvolve.visualize.manuscript_plots import set_plot_params
 set_plot_params.init_paper_small()
 
 TOTAL_SEPARATION_LIST = [0.025, 0.05, 0.1, 0.15, 0.2]

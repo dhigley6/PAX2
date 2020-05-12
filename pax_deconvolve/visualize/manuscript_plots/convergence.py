@@ -4,7 +4,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
 
-from pax_deconvolve.visualize import set_plot_params
+from pax_deconvolve.visualize.manuscript_plots import set_plot_params
 set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'

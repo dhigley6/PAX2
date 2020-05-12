@@ -7,7 +7,7 @@ import datetime
 
 from pax_deconvolve.pax_simulations import simulate_pax
 from pax_deconvolve import pax_simulation_pipeline
-from pax_deconvolve.visualize import set_plot_params
+from pax_deconvolve.visualize.manuscript_plots import set_plot_params
 set_plot_params.init_paper_small()
 from pax_deconvolve.visualize.manuscript_plots import schlappa_performance
 

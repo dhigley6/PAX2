@@ -9,10 +9,9 @@ Make plot of simulated deconvolution result
 import numpy as np
 import matplotlib.pyplot as plt
 
-def make_plot(deconvolved):
+def plot_result(deconvolved):
     """Summarize deconvolution results
     deconvolved: fitted deconvolver
-    sim: simulated PAX data set
     """
     _, axs = plt.subplots(2, 1)
     _make_deconvolved_plot(axs[0], deconvolved)

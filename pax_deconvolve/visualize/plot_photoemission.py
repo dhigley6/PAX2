@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def make_plot(deconvolved):
+def plot_photoemission(deconvolved):
     binding_energy = -1*deconvolved.impulse_response_x
     photoemission = np.flipud(deconvolved.impulse_response_y)
     plt.figure()

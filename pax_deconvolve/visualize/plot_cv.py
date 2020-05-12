@@ -5,7 +5,7 @@ deconvolved data with known ground truth
 import numpy as np
 import matplotlib.pyplot as plt
 
-def make_plot(deconvolved_grid):
+def plot_cv(deconvolved_grid):
     """Make summary plot of deconvolution dependence on regularization parameter
     """
     _, axs = plt.subplots(3, 1, sharex=True)
