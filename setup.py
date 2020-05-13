@@ -22,6 +22,6 @@ setup(
     author='Daniel Higley',
     author_email='dhigley@slac.stanford.edu',
     packages=find_packages(),
-    python_requires='>=3.7, <4',
+    python_requires='>=3.6, <4',
     install_requires=requirements
 )
