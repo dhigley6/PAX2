@@ -52,7 +52,7 @@ def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations, 
     """Log deconvolution results as a function of iteration number using tensorboard
     To be used to make sure deconvolutions have been run for sufficient iterations.
     """
-    Parallel(n_jobs=1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
+    Parallel(n_jobs=-1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
     # below code can be used for debugging in case parallel case doesn't work
     #_ = (run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
 
