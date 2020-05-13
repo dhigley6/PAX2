@@ -1,6 +1,7 @@
-# PAX2
+# Deconvolution of PAX data
 
-Analysis of PAX data and simulations
+Deconvolution of PAX data and simulations, as described in
+D. J. Higley, H. Ogasawara, S. Zohar and G. L. Dakovski, "Using Photoelectron Spectroscopy to Measure Resonant Inelastic X-Ray Scattering: A Computational Investigation" (in manuscript)
 
 ## Installation
 
