@@ -12,7 +12,7 @@ from pax_deconvolve.visualize.manuscript_plots import set_plot_params
 set_plot_params.init_paper_small()
 
 FIGURES_DIR = 'figures'
-# Below are the 
+# List of base 10 logarithm of detected electrons to simulate:
 LOG10_COUNTS_LIST = [7.0, 6.5, 6.0, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5]
 
 # Below are the parameters to run the simulations with

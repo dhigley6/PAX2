@@ -18,10 +18,10 @@ Approximate convergence procedure:
 import numpy as np
 from joblib import Parallel, delayed
 
-from pax_deconvolve import LRDeconvolve
+from pax_deconvolve.deconvolution import deconvolvers
 from pax_deconvolve.pax_simulations import simulate_pax
-from pax_deconvolve import pax_simulation_analysis
-DEFAULT_PARAMETERS = pax_simulation_analysis.DEFAULT_PARAMETERS
+from pax_deconvolve import pax_simulation_pipeline
+DEFAULT_PARAMETERS = pax_simulation_pipeline.DEFAULT_PARAMETERS
 
 def run_pax_preset(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
     """Log deconvolution results for preset PAX parameters
@@ -52,11 +52,13 @@ def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations, 
     """Log deconvolution results as a function of iteration number using tensorboard
     To be used to make sure deconvolutions have been run for sufficient iterations.
     """
-    Parallel(n_jobs=-1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
+    Parallel(n_jobs=1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
+    # below code can be used for debugging in case parallel case doesn't work
+    #_ = (run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
 
 def run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y):
     if regularizer_width == 0:
-        deconvolver = LRDeconvolve.LRDeconvolve(
+        deconvolver = deconvolvers.LRDeconvolve(
             impulse_response['x'],
             impulse_response['y'],
             pax_spectra['x'],
@@ -66,7 +68,7 @@ def run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_w
             logging=True
         )
     else:
-        deconvolver = LRDeconvolve.LRFisterDeconvolve(
+        deconvolver = deconvolvers.LRFisterDeconvolve(
             impulse_response['x'],
             impulse_response['y'],
             pax_spectra['x'],
