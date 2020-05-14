@@ -1,22 +1,12 @@
 """Tool for assessing convergence of deconvolution
 
-Approximate convergence procedure:
-   - We want the model to overfit the data to the extent possible for each case of
-   regularization hyperparameter. This ensures that the regularization parameter controls
-   the degree of overfitting to the data and not the number of iterations. Empirically, we
-   observed that, for sufficiently small regularization hyperparameters, the validation
-   reconstruction error initially decreases with iteration number before reaching a minimum,
-   then increasing again, as shown in Fig. ?. As also seen in Fig. ?, the minima of the curves
-   that have such a feature are all close in iteration number. For iterations below this minimum, the model
-   seems to have underfit the data, while for iterations above the minimum, it seems to have
-   overfit the data. To try to have the model always be significantly overfitting the data when
-   the regularization hyperparameter is sufficiently small, we made sure to use a number of iterations
-   in the reconstruction that is at least ten times as large as the number of iterations where the curve
-   with the smallest regularization hyperparameter reaches a minimum.
+The intended use of this tool is to run it with the 'run' or 'run_pax_preset' functions
+below, then view the results using tensorboard on the log directory.
 """
 
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.model_selection import train_test_split
 
 from pax_deconvolve.deconvolution import deconvolvers
 from pax_deconvolve.pax_simulations import simulate_pax
@@ -36,27 +26,33 @@ def run_pax_preset(log10_num_electrons, rixs='schlappa', photoemission='ag', **k
         parameters['simulations'],
         parameters['energy_loss']
     )
-    _, val_pax_spectra, xray_xy = simulate_pax.simulate_from_presets(
-        log10_num_electrons-0.33,
-        rixs,
-        photoemission,
-        parameters['simulations'],
-        parameters['energy_loss']
-    )
-    val_pax_y = np.mean(val_pax_spectra['y'], axis=0)
     regularizer_widths = parameters['regularizer_widths']
     regularizer_widths = np.append([0], regularizer_widths)
-    run(impulse_response, pax_spectra, xray_xy, regularizer_widths, parameters['iterations'], val_pax_y)
+    run(impulse_response, pax_spectra, xray_xy, regularizer_widths, parameters['iterations'])
 
-def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations, val_pax_y):
+def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations):
     """Log deconvolution results as a function of iteration number using tensorboard
     To be used to make sure deconvolutions have been run for sufficient iterations.
     """
-    Parallel(n_jobs=-1)(delayed(run_single_deconvolver)(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
+    pax_spectra_train, val_pax_y = _split_pax_data(pax_spectra)
+    Parallel(n_jobs=-1)(delayed(_run_single_deconvolver)(impulse_response, pax_spectra_train, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
     # below code can be used for debugging in case parallel case doesn't work
     #_ = (run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
 
-def run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y):
+def _split_pax_data(pax_spectra):
+    """Split PAX data into a training and validation set
+    """
+    pax_spectra_train_y, pax_spectra_validation_y = train_test_split(pax_spectra['y'], test_size=0.3)
+    pax_spectra_train = {
+        'x': pax_spectra['x'],
+        'y': pax_spectra_train_y
+    }
+    val_pax_y = np.mean(pax_spectra_validation_y, axis=0)
+    return pax_spectra_train, val_pax_y
+
+def _run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y):
+    """Run deconvolution with logging for a single regularization strength/regularization width
+    """
     if regularizer_width == 0:
         deconvolver = deconvolvers.LRDeconvolve(
             impulse_response['x'],
