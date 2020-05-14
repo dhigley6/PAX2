@@ -7,7 +7,6 @@ Generate model photoemission spectra given input binding energies.
 """
 
 import numpy as np
-import os
 
 BOLTZMANN_CONSTANT = 8.617E-5    # (eV/K) Taken from wikipedia
 
@@ -29,8 +28,6 @@ AG_3D_BROAD = 0.233    # Lorentzian intrinsic broadening taken from G. Panaccion
 AG_3D_CENTER = 372
 
 FERMI_CENTER = 0
-                           
-PT_FILE_PATH = os.path.join(os.path.dirname(__file__), 'data/Pt_valence_photoemission.csv')
 
 def make_model_photoemission(photoemission, rixs_xy, energy_spacing):
     if photoemission == 'ag':
@@ -155,17 +152,6 @@ def grating_model(binding_energy, fwhm=AG_3D_BROAD, center=None):
                      'x_min': 365,
                      'x_max': 375}
     return result
-
-def pt_fermi_edge_spectrum(binding_energy):
-    """Return Pt photoemission data extracted from literature
-    """
-    pt_data = np.genfromtxt(PT_FILE_PATH, delimiter=',')
-    binding_energy_data = np.flipud(pt_data[:, 0])
-    intensity = np.flipud(pt_data[:, 1])
-    y = np.interp(binding_energy, binding_energy_data, intensity)
-    pt_photoemission = {'x': binding_energy,
-                        'y': y/np.sum(y)}
-    return pt_photoemission
 
 def two_narrow_peaks(binding_energy):
     """Return model photoemission spectrum for two 30 meV Gaussians separated
