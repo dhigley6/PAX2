@@ -11,6 +11,7 @@ from sklearn.model_selection import GridSearchCV
 import pprint
 from joblib import Parallel, delayed
 
+from pax_deconvolve.deconvolution import deconvolvers
 from pax_deconvolve.pax_simulations import simulate_pax
 
 # Set global simulation parameters
@@ -39,7 +40,7 @@ def run_with_extra(log10_num_electrons, rixs='schlappa', photoemission='ag', num
         parameters['simulations'],
         parameters['energy_loss']
     )
-    deconvolver = LRDeconvolve.LRFisterGrid(
+    deconvolver = deconvolvers.LRFisterGrid(
         impulse_response['x'],
         impulse_response['y'],
         pax_spectra['x'],
@@ -70,7 +71,7 @@ def _run_single_analysis(log10_num_electrons, rixs, photoemission, regularizer_w
         parameters['simulations'],
         parameters['energy_loss']
     )
-    deconvolver = LRDeconvolve.LRFisterDeconvolve(
+    deconvolver = deconvolvers.LRFisterDeconvolve(
         impulse_response['x'],
         impulse_response['y'],
         pax_spectra['x'],
@@ -93,7 +94,7 @@ def run(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
         parameters['simulations'],
         parameters['energy_loss']
     )
-    deconvolver = LRDeconvolve.LRFisterGrid(
+    deconvolver = deconvolvers.LRFisterGrid(
         impulse_response['x'],
         impulse_response['y'],
         pax_spectra['x'],
