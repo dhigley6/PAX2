@@ -12,12 +12,6 @@ import pprint
 from joblib import Parallel, delayed
 
 from pax_deconvolve.pax_simulations import simulate_pax
-from pax_deconvolve import LRDeconvolve
-
-# the below two lines are needed to make sure we can still load pickle files created before a file
-# structure change
-import sys
-sys.modules['LRDeconvolve'] = LRDeconvolve
 
 # Set global simulation parameters
 PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), 'simulated_results')
