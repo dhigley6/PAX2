@@ -40,9 +40,7 @@ def simulate(xray_spectrum, photoemission_spectrum, counts, num_simulations=1):
             'x': _calculate_pax_kinetic_energy(
                     xray_spectrum,
                     photoemission_spectrum),
-            'y': pax_y_list,
-            'x_min': xray_spectrum['x_min']-photoemission_spectrum['x_max'],
-            'x_max': xray_spectrum['x_max']-photoemission_spectrum['x_min']}
+            'y': pax_y_list}
     return impulse_response, pax_spectra
     
 def calculate_pax_impulse_response(photoemission_spectrum):
