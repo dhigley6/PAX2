@@ -26,7 +26,7 @@ def _make_cv_plot(ax, deconvolved_grid):
 
 def _make_reconvolved_mse_plot(ax, deconvolved_grid):
     line = ax.errorbar(deconvolved_grid.regularization_strengths, deconvolved_grid.reconstruction_train_mse_, deconvolved_grid.reconstruction_train_mse_std_)
-    min_ind = np.argmin(deconvolved_grid.reconvolved_mse_)
+    min_ind = np.argmin(deconvolved_grid.reconstruction_train_mse_)
     ax.plot(deconvolved_grid.regularization_strengths[min_ind], deconvolved_grid.reconstruction_train_mse_[min_ind], marker='x', color=line[0].get_color())
 
 def _format_plot(axs):
