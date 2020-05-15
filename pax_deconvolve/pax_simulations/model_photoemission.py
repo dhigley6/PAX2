@@ -80,10 +80,10 @@ def get_au_4f_spectrum(binding_energy):
     au_4f_7half = b2/((binding_energy-AU_4F_7HALF_BINDING)**2+(b2)**2)
     au_4f_5half = b2/((binding_energy-AU_4F_5HALF_BINDING)**2+(b2)**2)
     au_4f_background = 0.15
-    au_4f_photoemission = {'x': binding_energy,
-                           'y': 3*au_4f_7half+4*au_4f_5half+au_4f_background,
-                           'x_min': 80,
-                           'x_max': 90}
+    au_4f_photoemission = {
+        'x': binding_energy,
+        'y': 3*au_4f_7half+4*au_4f_5half+au_4f_background
+    }
     return au_4f_photoemission
 
 def get_ag_3d_with_bg(binding_energy):
@@ -105,11 +105,10 @@ def get_ag_3d_spectrum(binding_energy):
     ag_3d_background = 0
     y = 5*ag_3d_5half+3*ag_3d_3half+ag_3d_background
     y = y/np.sum(y)
-    ag_3d_photoemission = {'x': binding_energy,
-                           'y': y,
-                           'binding_energy': binding_energy,
-                           'x_min': 365,
-                           'x_max': 375}
+    ag_3d_photoemission = {
+        'x': binding_energy,
+        'y': y
+    }
     return ag_3d_photoemission
 
 def get_fermi_spectrum(binding_energy):
@@ -119,10 +118,10 @@ def get_fermi_spectrum(binding_energy):
     y[binding_energy < 0] = 0
     y[binding_energy > 5] = 0
     y = y +1E-7
-    fermi_photoemission = {'x': binding_energy,
-                           'y': y/np.sum(y),
-                           'x_min': -2.5,
-                           'x_max': 12.5}
+    fermi_photoemission = {
+        'x': binding_energy,
+        'y': y/np.sum(y)
+    }
     return fermi_photoemission
 
 def get_fermi_dirac(binding_energy, T=4):
@@ -133,8 +132,6 @@ def get_fermi_dirac(binding_energy, T=4):
     fermi_dirac_photoemission = {
         'x': binding_energy,
         'y': y/np.sum(y)+1E-9,
-        'x_min': -2.5,
-        'x_max': 2.5
     }
     return fermi_dirac_photoemission
 
@@ -146,11 +143,10 @@ def grating_model(binding_energy, fwhm=AG_3D_BROAD, center=None):
     if center is None:
         center = np.mean(binding_energy)
     y = np.exp(-1*((binding_energy-center)/sigma)**2)+epsilon
-    result = {'x': binding_energy,
-                     'y': y/np.sum(y),
-                     'binding_energy': binding_energy,
-                     'x_min': 365,
-                     'x_max': 375}
+    result = {
+        'x': binding_energy,
+        'y': y/np.sum(y)
+    }
     return result
 
 def two_narrow_peaks(binding_energy):
@@ -161,7 +157,6 @@ def two_narrow_peaks(binding_energy):
     inelastic_peak = 2*np.exp(-((binding_energy-0.25)/0.03)**2)
     intensity = elastic_peak+inelastic_peak
     photoemission = {'x': binding_energy,
-                     'y': intensity,
-                     'x_min': -0.5,
-                     'x_max': 1}
+                     'y': intensity
+    }
     return photoemission
