@@ -25,14 +25,14 @@ def _make_cv_plot(ax, deconvolved_grid):
     ax.plot(deconvolved_grid.regularizer_widths[min_ind], deconvolved_grid.cv_[min_ind], marker='x', color=line[0].get_color())
 
 def _make_reconvolved_mse_plot(ax, deconvolved_grid):
-    line = ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.reconvolved_mse_, deconvolved_grid.reconvolved_mse_std_)
+    line = ax.errorbar(deconvolved_grid.regularizer_widths, deconvolved_grid.reconstruction_train_mse_, deconvolved_grid.reconstruction_train_mse_std_)
     min_ind = np.argmin(deconvolved_grid.reconvolved_mse_)
-    ax.plot(deconvolved_grid.regularizer_widths[min_ind], deconvolved_grid.reconvolved_mse_[min_ind], marker='x', color=line[0].get_color())
+    ax.plot(deconvolved_grid.regularizer_widths[min_ind], deconvolved_grid.reconstruction_train_mse_[min_ind], marker='x', color=line[0].get_color())
 
 def _format_plot(axs):
     axs[0].set_ylabel('Deconvolved MSE')
-    axs[1].set_ylabel('Reconvolved MSE')
-    axs[2].set_ylabel('CV')
+    axs[1].set_ylabel('Reconstruction\nTraining MSE')
+    axs[2].set_ylabel('Reconstruction\nValidation MSE')
     axs[2].set_xlabel('Regularizer Width (eV)')
     axs[1].set_xscale('log')
     axs[2].set_xscale('log')

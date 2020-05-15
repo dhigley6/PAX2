@@ -48,13 +48,14 @@ class LRFisterGrid(BaseEstimator):
             error of deconvolved data as a function of regularization strength
         deconvolved_mse_std_ {array-like of shape (n_regularizers,)}: standard
             deviation of deconvolved_mse_
-        reconstruction_mse_ {array-like of shape (n_regularizers,)}: mean
-            squared error of reconstruction as a function of regularization
-            strength
-        reconstruction_mse_std_ {array-like of shape (n_regularizers,)}:
+        reconstruction_train_mse_ {array-like of shape (n_regularizers,)}: mean
+            squared deviation of reconstruction from average training data
+        reconstruction_train_mse_std_ {array-like of shape (n_regularizers,)}:
             standard deviation of reconstruction_mse_
-        cv_ {array-like of shape (n_regularizers,)}: 
-        cv_std_ {array-like of shape (n_regularizers,)}
+        cv_ {array-like of shape (n_regularizers,)}: mean squared deviation
+            of reconstruction from average validation data
+        cv_std_ {array-like of shape (n_regularizers,)}: standard deviation
+            of cv_
     """
 
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, 
@@ -109,8 +110,8 @@ class LRFisterGrid(BaseEstimator):
         if self.ground_truth_y is not None:
             self.deconvolved_mse_ = -1*deconvolver_gs.cv_results_['mean_test_deconvolved']
             self.deconvolved_mse_std_ = deconvolver_gs.cv_results_['std_test_deconvolved']
-        self.reconstruction_mse_ = -1*deconvolver_gs.cv_results_['mean_train_reconstruction']
-        self.reconstruction_mse_std_ = deconvolver_gs.cv_results_['std_train_reconstruction']
+        self.reconstruction_train_mse_ = -1*deconvolver_gs.cv_results_['mean_train_reconstruction']
+        self.reconstruction_train_mse_std_ = deconvolver_gs.cv_results_['std_train_reconstruction']
         self.cv_ = -1*deconvolver_gs.cv_results_['mean_test_reconstruction']
         self.cv_std_ = deconvolver_gs.cv_results_['std_test_reconstruction']
         return self

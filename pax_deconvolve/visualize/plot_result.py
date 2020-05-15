@@ -24,7 +24,7 @@ def _make_deconvolved_plot(ax, deconvolved):
 
 def _make_reconvolved_plot(ax, deconvolved):
     ax.plot(deconvolved.reconvolved_x, deconvolved.measured_y_, label='Measured')
-    ax.plot(deconvolved.reconvolved_x, deconvolved.reconvolved_y_, label='Reconvolved')
+    ax.plot(deconvolved.reconvolved_x, deconvolved.reconstruction_y_, label='Reconvolved')
 
 def _format_plot(axs):
     axs[0].set_xlabel('Photon Energy (eV)')
