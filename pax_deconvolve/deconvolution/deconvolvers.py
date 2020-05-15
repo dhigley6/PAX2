@@ -23,7 +23,7 @@ from pax_deconvolve.deconvolution import deconvolution_metrics
 LOGDIR = 'logdir/'
 
 class LRFisterGrid(BaseEstimator):
-    """Fister-regularized deconvolution with regularization chosen by cross validation
+    """Fister-regularized deconvolution with regularization chosen by cross validation.
 
     Attributes:
         impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
