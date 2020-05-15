@@ -105,7 +105,7 @@ class LRFisterGrid(BaseEstimator):
             n_jobs=-1
         )
         deconvolver_gs.fit(X)
-        self.best_regularization_strength_ = deconvolver_gs.best_params_
+        self.best_regularization_strength_ = deconvolver_gs.best_params_['regularization_strength']
         self.measured_y_ = np.mean(X, axis=0)     # Average measurement
         self.deconvolved_y_ = deconvolver_gs.best_estimator_.deconvolved_y_
         self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
