@@ -32,6 +32,8 @@ class LRFisterGrid(BaseEstimator):
             of impulse response
         convolved_x {array-like of shape (n_c,)}: x-values (locations) 
             of convolved data
+        deconvolved_x {array-like of shape (n_c,)}: x-values (locations)
+            of deconvolved data
         regularization_strengths {array-like of shape (n_regularizers,)}: 
             Regularization strengths to try
         iterations (int): Number of iterations to use in deconvolution
@@ -73,7 +75,7 @@ class LRFisterGrid(BaseEstimator):
     def fit(self, X):
         """Deconvolve data
 
-        Args:
+        Parameters:
             X (2d array-like): first dimension is different measurements,
                                second dimension is intensities at different points
         """
@@ -119,7 +121,7 @@ class LRFisterGrid(BaseEstimator):
     def predict(self, X=None):
         """Return estimated deconvolved signal.
 
-        Args:
+        Parameters:
             X: unused, but included to be consistent with sklearn conventions
         """
         return self.deconvolved_y_
@@ -136,6 +138,25 @@ class LRFisterGrid(BaseEstimator):
 class LRDeconvolve(BaseEstimator):
     """Modified Lucy-Richardson deconvolution
     (the modification enables handling a background)
+
+    Attributes:
+        impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
+            of impulse response
+        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities) 
+            of impulse response
+        convolved_x {array-like of shape (n_c,)}: x-values (locations) 
+            of convolved data
+        deconvolved_x {array-like of shape (n_c,)}: x-values (locations)
+            of deconvolved data
+        iterations (int): Number of iterations to use in deconvolution
+        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities) 
+            of ground truth for deconvolution (None if not available)
+        X_valid {array-like of shape (n_c,)}: mean of validation data
+        logging (boolean): log data in tensorboard if True
+        measured_y_ {array-like of shape (n_c,)}: Average measurement
+        deconvolved_y_ {array-like of shape (n_c,)}: Deconvolved intensities
+        reconstruction_y_ {array-like of shape (n_c,)}: Reconstruction of
+            input data from deconvolved result
     """
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, 
                  iterations=5, ground_truth_y=None, X_valid=None, 
@@ -150,7 +171,8 @@ class LRDeconvolve(BaseEstimator):
         self.logging = logging
 
     def fit(self, X):
-        """Perform PAX 
+        """Perform deconvolution 
+
         parameters:
             X: array, rows are PAX spectra measurements, columns are specific electron energies
         """
@@ -208,9 +230,13 @@ class LRDeconvolve(BaseEstimator):
         gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
         gauss = gauss/np.sum(gauss)
         return convolve(measured_y, gauss, mode='valid')
-        #return measured_y
 
     def predict(self, X=None):
+        """Return estimated deconvolved signal.
+
+        Parameters:
+            X: unused, but included to be consistent with sklearn conventions
+        """
         return self.deconvolved_y_
         
     def score(self, X_test):
@@ -231,6 +257,26 @@ class LRDeconvolve(BaseEstimator):
 class LRFisterDeconvolve(LRDeconvolve):
     """Modifed Lucy-Richardson deconvolution with Fister regularization
     (The modification enables handling of a background in the impulse response function)
+
+    Attributes:
+        impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
+            of impulse response
+        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities) 
+            of impulse response
+        convolved_x {array-like of shape (n_c,)}: x-values (locations) 
+            of convolved data
+        regularization_strength {float}: regularization strength
+        deconvolved_x {array-like of shape (n_c,)}: x-values (locations)
+            of deconvolved data
+        iterations (int): Number of iterations to use in deconvolution
+        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities) 
+            of ground truth for deconvolution (None if not available)
+        X_valid {array-like of shape (n_c,)}: mean of validation data
+        logging (boolean): log data in tensorboard if True
+        measured_y_ {array-like of shape (n_c,)}: Average measurement
+        deconvolved_y_ {array-like of shape (n_c,)}: Deconvolved intensities
+        reconstruction_y_ {array-like of shape (n_c,)}: Reconstruction of
+            input data from deconvolved result
     """
 
     def __init__(self, impulse_response_x, impulse_response_y, convolved_x, 
@@ -239,7 +285,6 @@ class LRFisterDeconvolve(LRDeconvolve):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.reconstruction_x = convolved_x
         self.deconvolved_x = self._get_deconvolved_x()
         self.regularization_strength = regularization_strength
         self.iterations = int(iterations)
@@ -275,8 +320,9 @@ class LRFisterDeconvolve(LRDeconvolve):
 
     def fit(self, X):
         """Deconvolve data
+
         parameters:
-            X: array, rows are measurements, columns are points of the measurements
+            X {array-like}: rows are measurements, columns are points of the measurements
         """
         self.measured_y_ = np.mean(X, axis=0)
         self.deconvolved_y_ = self._LR_fister(self.measured_y_)
@@ -284,10 +330,12 @@ class LRFisterDeconvolve(LRDeconvolve):
         return self
 
     def _normalized_gaussian(self, x, mu, sigma):
-        """Return a normalized gaussian function 
-        center: mu
-        standard deviation: sigma
-        unit integrated amplitude
+        """Return a normalized gaussian function
+
+        Parameters:
+            x {array-like}: locations to calculate Gaussian atß
+            mu: center of Gaussian
+            sigma: standard deviation of Gaussian
         """
         norm_gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
         norm_gauss = norm_gauss/np.sum(norm_gauss)

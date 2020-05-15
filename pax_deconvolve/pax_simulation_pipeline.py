@@ -1,7 +1,5 @@
 """
 Pipeline for running, analyzing, saving, and loading PAX simulations.
-
-This module should be used as the main interaction point for doing and loading PAX simulations.
 """
 
 import numpy as np
