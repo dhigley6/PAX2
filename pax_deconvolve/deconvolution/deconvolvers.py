@@ -24,19 +24,58 @@ LOGDIR = 'logdir/'
 
 class LRFisterGrid(BaseEstimator):
     """Fister-regularized deconvolution with regularization chosen by cross validation
+
+    Attributes:
+        impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
+            of impulse response
+        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities) 
+            of impulse response
+        convolved_x {array-like of shape (n_c,)}: x-values (locations) 
+            of convolved data
+        regularization_strengths {array-like of shape (n_regularizers,)}: 
+            Regularization strengths to try
+        iterations (int): Number of iterations to use in deconvolution
+        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities) 
+            of ground truth for deconvolution (None if not available)
+        cv_folds (int): Number of folds of cross validation to do
+        best_regularization_strength_ {float}: Best regularization strength 
+            found with cross validation
+        measured_y_ {array-like of shape (n_c,)}: Average measurement
+        deconvolved_y_ {array-like of shape (n_c,)}: Deconvolved intensities
+        reconstruction_y_ {array-like of shape (n_c,)}: Reconstruction of
+            input data from deconvolved result
+        deconvolved_mse_ {array-like of shape (n_regularizers,)}: mean squared 
+            error of deconvolved data as a function of regularization strength
+        deconvolved_mse_std_ {array-like of shape (n_regularizers,)}: standard
+            deviation of deconvolved_mse_
+        reconstruction_mse_ {array-like of shape (n_regularizers,)}: mean
+            squared error of reconstruction as a function of regularization
+            strength
+        reconstruction_mse_std_ {array-like of shape (n_regularizers,)}:
+            standard deviation of reconstruction_mse_
+        cv_ {array-like of shape (n_regularizers,)}: 
+        cv_std_ {array-like of shape (n_regularizers,)}
     """
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_widths=[0.01, 0.1], iterations=1E3, ground_truth_y=None, cv=5):
+
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, 
+                 regularization_strengths=[0.01, 0.1], iterations=1E3, 
+                 ground_truth_y=None, cv_folds=5):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.reconvolved_x = convolved_x
         self.deconvolved_x = self._get_deconvolved_x()
-        self.regularizer_widths = regularizer_widths
+        self.regularization_strengths = regularization_strengths
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
-        self.cv = cv
+        self.cv_folds = cv_folds
 
     def fit(self, X):
+        """Deconvolve data
+
+        Args:
+            X (2d array-like): first dimension is different measurements,
+                               second dimension is intensities at different points
+        """
         deconvolver = LRFisterDeconvolve(
             self.impulse_response_x,
             self.impulse_response_y,
@@ -45,41 +84,49 @@ class LRFisterGrid(BaseEstimator):
             ground_truth_y=self.ground_truth_y,
             logging=False
         )
-        param_grid = {'regularizer_width': self.regularizer_widths}
+        param_grid = {'regularization_strength': self.regularization_strengths}
         if self.ground_truth_y is not None:
             scoring = {
                 'deconvolved': deconvolution_metrics.neg_deconvolved_mse,
-                'reconvolved': deconvolution_metrics.neg_reconvolved_mse}
+                'reconstruction': deconvolution_metrics.neg_reconstruction_mse}
         else:
-            scoring = {'reconvolved': deconvolution_metrics.neg_reconvolved_mse}
+            scoring = {'reconstruction': deconvolution_metrics.neg_reconstruction_mse}
         deconvolver_gs = GridSearchCV(
             deconvolver,
             param_grid,
-            cv=self.cv,
+            cv=self.cv_folds,
             return_train_score=True,
             verbose=True,
             scoring=scoring,
-            refit='reconvolved',
+            refit='reconstruction',
             n_jobs=-1
         )
         deconvolver_gs.fit(X)
-        self.best_params_ = deconvolver_gs.best_params_
-        self.measured_y_ = np.mean(X, axis=0)
+        self.best_regularization_strength_ = deconvolver_gs.best_params_
+        self.measured_y_ = np.mean(X, axis=0)     # Average measurement
         self.deconvolved_y_ = deconvolver_gs.best_estimator_.deconvolved_y_
-        self.reconvolved_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
-        self.gridsearch_cv_results_ = deconvolver_gs.cv_results_
-        self.deconvolved_mse_ = -1*deconvolver_gs.cv_results_['mean_test_deconvolved']
-        self.deconvolved_mse_std_ = deconvolver_gs.cv_results_['std_test_deconvolved']
-        self.reconvolved_mse_ = -1*deconvolver_gs.cv_results_['mean_train_reconvolved']
-        self.reconvolved_mse_std_ = deconvolver_gs.cv_results_['std_train_reconvolved']
-        self.cv_ = -1*deconvolver_gs.cv_results_['mean_test_reconvolved']
-        self.cv_std_ = deconvolver_gs.cv_results_['std_test_reconvolved']
+        self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
+        if self.ground_truth_y is not None:
+            self.deconvolved_mse_ = -1*deconvolver_gs.cv_results_['mean_test_deconvolved']
+            self.deconvolved_mse_std_ = deconvolver_gs.cv_results_['std_test_deconvolved']
+        self.reconstruction_mse_ = -1*deconvolver_gs.cv_results_['mean_train_reconstruction']
+        self.reconstruction_mse_std_ = deconvolver_gs.cv_results_['std_train_reconstruction']
+        self.cv_ = -1*deconvolver_gs.cv_results_['mean_test_reconstruction']
+        self.cv_std_ = deconvolver_gs.cv_results_['std_test_reconstruction']
         return self
 
-    def predict(self, X):
+    def predict(self, X=None):
+        """Return estimated deconvolved signal.
+
+        Args:
+            X: unused, but included to be consistent with sklearn conventions
+        """
         return self.deconvolved_y_
 
     def _get_deconvolved_x(self):
+        """Return x-values (locations) of deconvolved signal.
+        (photon energies for PAX)
+        """
         average_impulse_x = np.mean(self.impulse_response_x)
         deconvolved_x = self.convolved_x-average_impulse_x
         return deconvolved_x
@@ -89,11 +136,12 @@ class LRDeconvolve(BaseEstimator):
     """Modified Lucy-Richardson deconvolution
     (the modification enables handling a background)
     """
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, iterations=5, ground_truth_y=None, X_valid=None, logging=False):
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, 
+                 iterations=5, ground_truth_y=None, X_valid=None, 
+                 logging=False):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.reconvolved_x = convolved_x
         self.deconvolved_x = self._get_deconvolved_x()
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
@@ -107,7 +155,7 @@ class LRDeconvolve(BaseEstimator):
         """
         self.measured_y_ = np.mean(X, axis=0)
         self.deconvolved_y_ = self._LR(self.measured_y_)
-        self.reconvolved_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
+        self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
         return self
 
     def _LR(self, measured_y):
@@ -121,7 +169,8 @@ class LRDeconvolve(BaseEstimator):
             ones_vec = np.ones_like(previous_O)
             blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
             correction_factor = measured_y/blurred
-            gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+            gradient = (convolve(impulse_response_y_reversed, ones_vec, mode='valid')
+                        -convolve(impulse_response_y_reversed, correction_factor, mode='valid'))
             current_O = previous_O*(1-gradient)
             previous_O = current_O
             if self.logging:
@@ -131,6 +180,8 @@ class LRDeconvolve(BaseEstimator):
         return current_O
 
     def _save_iteration_stats(self, current_deconvolved, iteration):
+        """Calculate statistics from current result and save to tensorboard log
+        """
         current_reconstruction = convolve(current_deconvolved, self.impulse_response_y, mode='valid')
         reconstruction_mse = mean_squared_error(current_reconstruction, self.measured_y_)
         tf.summary.scalar('train_reconstruction_mse', reconstruction_mse, step=iteration)
@@ -138,9 +189,9 @@ class LRDeconvolve(BaseEstimator):
             # We have access to the ground truth, so we can calculate a few more metrics
             deconvolved_mse = mean_squared_error(current_deconvolved, self.ground_truth_y)
             tf.summary.scalar('deconvolved_mse', deconvolved_mse, step=iteration)
-            ground_truth_reconvolved = convolve(self.ground_truth_y, self.impulse_response_y, mode='valid')
-            reconvolved_mse = mean_squared_error(current_reconstruction, ground_truth_reconvolved)
-            tf.summary.scalar('reconvolved_mse', reconvolved_mse, step=iteration)
+            ground_truth_reconstruction = convolve(self.ground_truth_y, self.impulse_response_y, mode='valid')
+            reconstruction_mse = mean_squared_error(current_reconstruction, ground_truth_reconstruction)
+            tf.summary.scalar('reconstruction_mse', reconstruction_mse, step=iteration)
         if self.X_valid is not None:
             val_reconstruction_mse = mean_squared_error(current_reconstruction, self.X_valid)
             tf.summary.scalar('validation_reconstruction_mse', val_reconstruction_mse, step=iteration)
@@ -148,6 +199,7 @@ class LRDeconvolve(BaseEstimator):
 
     def _deconvolution_guess(self, measured_y):
         """Return initial guess for deconvolved signal
+        (use blurred version of measured_y as guess)
         """
         sigma = 1
         x = self.impulse_response_x
@@ -157,33 +209,38 @@ class LRDeconvolve(BaseEstimator):
         return convolve(measured_y, gauss, mode='valid')
         #return measured_y
 
-    def predict(self, X):
+    def predict(self, X=None):
         return self.deconvolved_y_
         
     def score(self, X_test):
-        """Default scoring is reconvolved mean squared error
+        """Default scoring is reconstruction mean squared error
         """
         mean_X_test = np.mean(X_test, axis=0)
-        mse = mean_squared_error(self.reconvolved_y_, mean_X_test)
+        mse = mean_squared_error(self.reconstruction_y_, mean_X_test)
         return -1*mse
 
     def _get_deconvolved_x(self):
+        """Return x-values (locations) of deconvolved signal.
+        (photon energies for PAX)
+        """
         average_impulse_x = np.mean(self.impulse_response_x)
         deconvolved_x = self.convolved_x-average_impulse_x
         return deconvolved_x
 
 class LRFisterDeconvolve(LRDeconvolve):
     """Modifed Lucy-Richardson deconvolution with Fister regularization
-    The modification enables handling of a background in the impulse response function
+    (The modification enables handling of a background in the impulse response function)
     """
 
-    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, regularizer_width=0.05, iterations=1E2, ground_truth_y=None, X_valid=None, logging=False):
+    def __init__(self, impulse_response_x, impulse_response_y, convolved_x, 
+                 regularization_strength=0.05, iterations=1E2, ground_truth_y=None, 
+                 X_valid=None, logging=False):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.reconvolved_x = convolved_x
+        self.reconstruction_x = convolved_x
         self.deconvolved_x = self._get_deconvolved_x()
-        self.regularizer_width = regularizer_width
+        self.regularization_strength = regularization_strength
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
         self.X_valid = X_valid
@@ -195,17 +252,18 @@ class LRFisterDeconvolve(LRDeconvolve):
         gauss = self._normalized_gaussian(
             self.impulse_response_x,
             np.mean(self.impulse_response_x),
-            self.regularizer_width
+            self.regularization_strength
         )
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
         ones_vec = np.ones_like(previous_O)
         if self.logging:
-            writer = tf.summary.create_file_writer(f'{LOGDIR}{self.regularizer_width}')
+            writer = tf.summary.create_file_writer(f'{LOGDIR}{self.regularization_strength}')
         for iteration in range(self.iterations):
             blurred = convolve(self.impulse_response_y, previous_O, mode='valid')
             correction_factor = measured_y/blurred
-            gradient = convolve(impulse_response_y_reversed, ones_vec, mode='valid')-convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+            gradient = (convolve(impulse_response_y_reversed, ones_vec, mode='valid')
+                        -convolve(impulse_response_y_reversed, correction_factor, mode='valid'))
             current_O = previous_O*(1-gradient)
             current_O = convolve(current_O, gauss, mode='valid')
             previous_O = current_O
@@ -214,25 +272,14 @@ class LRFisterDeconvolve(LRDeconvolve):
                     self._save_iteration_stats(current_O, iteration)
         return current_O
 
-    def _LR_fister_iteration(self, previous_deconvolved, measured_y, impulse_response_y_reversed, gauss):
-        """Perform one iteration of Fister-regularized Lucy-Richardson deconvolution
-        (currently unused)
-        """
-        I = convolve(previous_deconvolved, self.impulse_response_y, mode='valid')
-        relative_blur = measured_y/I
-        correction_factor_estimate = convolve(relative_blur, impulse_response_y_reversed, mode='valid')
-        current_deconvolved = previous_deconvolved*correction_factor_estimate
-        current_deconvolved = convolve(current_deconvolved, gauss, mode='valid')
-        return current_deconvolved
-
     def fit(self, X):
-        """Perform PAX 
+        """Deconvolve data
         parameters:
-            X: array, rows are PAX spectra measurements, columns are specific electron energies
+            X: array, rows are measurements, columns are points of the measurements
         """
         self.measured_y_ = np.mean(X, axis=0)
         self.deconvolved_y_ = self._LR_fister(self.measured_y_)
-        self.reconvolved_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
+        self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
         return self
 
     def _normalized_gaussian(self, x, mu, sigma):
