@@ -68,7 +68,7 @@ def _run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_
             impulse_response['x'],
             impulse_response['y'],
             pax_spectra['x'],
-            regularizer_width=regularizer_width,
+            regularization_strength=regularizer_width,
             iterations=iterations,
             ground_truth_y=xray_xy['y'],
             logging=True,
