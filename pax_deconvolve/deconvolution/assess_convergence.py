@@ -10,8 +10,14 @@ from sklearn.model_selection import train_test_split
 
 from pax_deconvolve.deconvolution import deconvolvers
 from pax_deconvolve.pax_simulations import simulate_pax
-from pax_deconvolve import pax_simulation_pipeline
-DEFAULT_PARAMETERS = pax_simulation_pipeline.DEFAULT_PARAMETERS
+# Set default simulation parameters
+DEFAULT_PARAMETERS = {
+    'energy_loss': np.arange(-8, 10, 0.005),
+    'iterations': 1E2,
+    'simulations': 1000,
+    'cv_fold': 4,
+    'regularizer_widths': np.logspace(-3, -1, 10)
+}
 
 def run_pax_preset(log10_num_electrons, rixs='schlappa', photoemission='ag', **kwargs):
     """Log deconvolution results for preset PAX parameters

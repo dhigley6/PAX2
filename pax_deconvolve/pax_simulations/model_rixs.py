@@ -66,7 +66,7 @@ def get_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5):
                'x_max': separation+0.2+incident_energy}
     return doublet
 
-def get_independent_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5, fwhm=0.1):
+def get_independent_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5, fwhm=0.05):
     """Doublet with independent separation and peak width
     """
     sigma = fwhm/(2*np.sqrt(2*np.log(2)))
