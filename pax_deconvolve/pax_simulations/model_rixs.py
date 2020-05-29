@@ -29,6 +29,14 @@ def _model_rixs_function(rixs):
                 incident_photon_energy,
                 separation=separation)
             return doublet
+        elif rixs[0] == 'i_doublet':
+            separation = rixs[1]
+            c_doublet = lambda x, incident_photon_energy: get_independent_doublet(
+                x,
+                incident_photon_energy,
+                separation=separation
+            )
+            return c_doublet
         else:
             raise ValueError('Invalid "rixs" type')
     else:
@@ -56,6 +64,20 @@ def get_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5):
                'y': np.flipud(y),
                'x_min': -0.2+incident_energy,
                'x_max': separation+0.2+incident_energy}
+    return doublet
+
+def get_independent_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5, fwhm=0.1):
+    """Doublet with independent separation and peak width
+    """
+    sigma = fwhm/(2*np.sqrt(2*np.log(2)))
+    elastic_peak = np.exp(-((energy_loss-0)/sigma)**2)
+    loss_peak = np.exp(-((energy_loss-separation)/sigma)**2)
+    y = elastic_peak+loss_peak
+    y = y/np.sum(y)
+    doublet = {
+        'x': incident_energy-np.flipud(energy_loss),
+        'y': np.flipud(y)
+    }
     return doublet
 
 def get_georgi_rixs(energy_loss, incident_energy=INCIDENT_ENERGY):
