@@ -67,7 +67,8 @@ def calculate_binding_energies(points_in_spectrum,
       - be length 2xlen(xray_spectrum)-1
       - have the same energy spacing as the X-ray spectrum
     """
-    binding_energies_len = 2*points_in_spectrum-1
+    #binding_energies_len = 2*points_in_spectrum-1
+    binding_energies_len = 2*points_in_spectrum-10
     binding_energies = np.arange(0, binding_energies_len*energy_spacing-energy_spacing/2,
                                  energy_spacing)
     binding_energies = binding_energies-np.mean(binding_energies)+center_binding_energy

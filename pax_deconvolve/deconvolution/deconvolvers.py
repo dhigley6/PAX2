@@ -1,7 +1,7 @@
-"""
-Classes for regularized scaled gradient deconvolution
+"""Classes for regularized scaled gradient deconvolution
 These are equivalent to regularized Lucy-Richardson deconvolution in the case
 that the impulse response function is negligible at the boundaries.
+The algorithms are described in https://arxiv.org/abs/2006.10914
 
 The regularization we employed here was originally suggested by Fister et al.
 for regularizing Lucy-Richardson deconvolution. This consists of convolving
@@ -20,7 +20,7 @@ from sklearn.model_selection import GridSearchCV
 
 from pax_deconvolve.deconvolution import deconvolution_metrics
 
-LOGDIR = 'logdir/'
+LOGDIR = 'logdir/'    # Log directory to save tensorboard files in
 
 class LRFisterGrid(BaseEstimator):
     """Fister-regularized deconvolution with regularization chosen by cross validation.
@@ -229,7 +229,8 @@ class LRDeconvolve(BaseEstimator):
         mu = np.mean(x)
         gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
         gauss = gauss/np.sum(gauss)
-        return convolve(measured_y, gauss, mode='valid')
+        #return convolve(measured_y, gauss, mode='valid')
+        return self.ground_truth_y
 
     def predict(self, X=None):
         """Return estimated deconvolved signal.
@@ -295,14 +296,15 @@ class LRFisterDeconvolve(LRDeconvolve):
     def _LR_fister(self, measured_y):
         """Perform Fister-regularized modified Lucy-Richardson deconvolution of measured_y
         """
+        x = np.arange(-1+2*len(self._deconvolution_guess(measured_y)))*(self.impulse_response_x[1]-self.impulse_response_x[0])
         gauss = self._normalized_gaussian(
-            self.impulse_response_x,
-            np.mean(self.impulse_response_x),
+            x,
+            np.mean(x),
             self.regularization_strength
         )
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
-        ones_vec = np.ones_like(previous_O)
+        ones_vec = np.ones_like(measured_y)
         if self.logging:
             writer = tf.summary.create_file_writer(f'{LOGDIR}{self.regularization_strength}')
         for iteration in range(self.iterations):
