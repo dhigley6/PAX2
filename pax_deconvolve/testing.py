@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import convolve
 
 from pax_simulations import simulate_pax
 from deconvolution import deconvolvers, assess_convergence
@@ -33,4 +34,46 @@ def run():
         CV_FOLD
     )
     _ = deconvolver.fit(np.array(pax_spectra['y']))
+    visualize.plot_result(deconvolver)
+
+def demo_test():
+    b2 = 0.15    # Half of photoemission peak broadening
+    binding_energies = np.arange(355, 390, 0.02)
+    photoemission_spectrum = 5*(b2)/((binding_energies-368.3)**2+(b2)**2)+3*(b2)/((binding_energies-374.0)**2+(b2)**2)
+    norm_factor = np.sum(photoemission_spectrum)
+    impulse_response = {
+        'x': -1*binding_energies,
+        'y': np.flipud(photoemission_spectrum)/norm_factor
+    }
+    photon_energies = np.arange(770, 788, 0.02)
+    p1 = 8*np.exp(-((photon_energies-777.75)/0.05)**2)
+    p2 = 23*np.exp(-((photon_energies-776.2)/0.2)**2)
+    p3 = 26*np.exp(-((photon_energies-775.8)/0.2)**2)
+    p4 = 9*np.exp(-((photon_energies-775.1)/0.3)**2)
+    p5 = 3*np.exp(-((photon_energies-773.5)/0.5)**2)
+    p6 = 3*np.exp(-((photon_energies-772.8)/0.75)**2)
+    xray_spectrum = p1+p2+p3+p4+p5+p6
+    noiseless_pax_spectrum = convolve(
+        xray_spectrum,
+        impulse_response['y'],
+        mode='valid'
+    )
+    num_pax_spectra = 5
+    single_photon = 5
+    counts = 10.0**7   #10^7
+    single_photon = num_pax_spectra*np.sum(noiseless_pax_spectrum)/counts
+    pax_spectra = []
+    for i in range(num_pax_spectra):
+        pax_spectrum = np.random.poisson(noiseless_pax_spectrum/single_photon)*single_photon
+        pax_spectra.append(pax_spectrum)
+    deconvolver = deconvolvers.LRFisterGrid(
+        impulse_response['x'],
+        impulse_response['y'],
+        np.arange(len(noiseless_pax_spectrum)),
+        REGULARIZATION_STRENGTHS,
+        ITERATIONS,
+        xray_spectrum,
+        CV_FOLD
+    )
+    _ = deconvolver.fit(np.array(pax_spectra))
     visualize.plot_result(deconvolver)

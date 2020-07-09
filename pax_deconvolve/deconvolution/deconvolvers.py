@@ -130,8 +130,12 @@ class LRFisterGrid(BaseEstimator):
         """Return x-values (locations) of deconvolved signal.
         (photon energies for PAX)
         """
-        average_impulse_x = np.mean(self.impulse_response_x)
-        deconvolved_x = self.convolved_x-average_impulse_x
+        first_point = self.convolved_x[0]-self.impulse_response_x[-1]
+        spacing = self.impulse_response_x[1]-self.impulse_response_x[0]
+        impulse_len = len(self.impulse_response_x)
+        convolved_len = len(self.convolved_x)
+        deconvolved_len = impulse_len-convolved_len+1
+        deconvolved_x = np.arange(first_point, first_point+deconvolved_len*spacing, spacing)
         return deconvolved_x
 
 
@@ -251,8 +255,16 @@ class LRDeconvolve(BaseEstimator):
         """Return x-values (locations) of deconvolved signal.
         (photon energies for PAX)
         """
-        average_impulse_x = np.mean(self.impulse_response_x)
-        deconvolved_x = self.convolved_x-average_impulse_x
+        #a = 1/0
+        #average_impulse_x = np.mean(self.impulse_response_x)
+        #deconvolved_x = self.convolved_x-average_impulse_x
+        #return deconvolved_x
+        first_point = self.convolved_x[0]-self.impulse_response_x[-1]
+        spacing = self.impulse_response_x[1]-self.impulse_response_x[0]
+        impulse_len = len(self.impulse_response_x)
+        convolved_len = len(self.convolved_x)
+        deconvolved_len = impulse_len-convolved_len+1
+        deconvolved_x = np.arange(first_point, first_point+deconvolved_len*spacing, spacing)
         return deconvolved_x
 
 class LRFisterDeconvolve(LRDeconvolve):
