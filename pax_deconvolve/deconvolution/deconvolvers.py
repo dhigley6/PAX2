@@ -66,7 +66,7 @@ class LRFisterGrid(BaseEstimator):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.deconvolved_x = self._get_deconvolved_x()
+        self.deconvolved_x = _get_deconvolved_x(self.convolved_x, self.impulse_response_x)
         self.regularization_strengths = regularization_strengths
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
@@ -126,19 +126,6 @@ class LRFisterGrid(BaseEstimator):
         """
         return self.deconvolved_y_
 
-    def _get_deconvolved_x(self):
-        """Return x-values (locations) of deconvolved signal.
-        (photon energies for PAX)
-        """
-        first_point = self.convolved_x[0]-self.impulse_response_x[-1]
-        spacing = self.impulse_response_x[1]-self.impulse_response_x[0]
-        impulse_len = len(self.impulse_response_x)
-        convolved_len = len(self.convolved_x)
-        deconvolved_len = impulse_len-convolved_len+1
-        deconvolved_x = np.arange(first_point, first_point+deconvolved_len*spacing, spacing)
-        return deconvolved_x
-
-
 class LRDeconvolve(BaseEstimator):
     """Modified Lucy-Richardson deconvolution
     (the modification enables handling a background)
@@ -168,7 +155,7 @@ class LRDeconvolve(BaseEstimator):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.deconvolved_x = self._get_deconvolved_x()
+        self.deconvolved_x = _get_deconvolved_x(self.convolved_x, self.impulse_response_x)
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
         self.X_valid = X_valid
@@ -226,15 +213,17 @@ class LRDeconvolve(BaseEstimator):
 
     def _deconvolution_guess(self, measured_y):
         """Return initial guess for deconvolved signal
-        (use blurred version of measured_y as guess)
+        (use blurred version of measured_y with same length as deconvolved signal as guess)
         """
-        sigma = 1
+        sigma = 1   # width of Gaussian blur
         x = self.impulse_response_x
         mu = np.mean(x)
-        gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
-        gauss = gauss/np.sum(gauss)
-        #return convolve(measured_y, gauss, mode='valid')
-        return self.ground_truth_y
+        gauss = _normalized_gaussian(x, mu, sigma)
+        #gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
+        #gauss = gauss/np.sum(gauss)
+        convolved = convolve(measured_y, gauss, mode='valid')
+        num_pad = len(convolved)-len(self.deconvolved_x)
+        return np.pad(convolved, pad_width=(0, num_pad), mode='constant', constant_values=0)
 
     def predict(self, X=None):
         """Return estimated deconvolved signal.
@@ -250,22 +239,6 @@ class LRDeconvolve(BaseEstimator):
         mean_X_test = np.mean(X_test, axis=0)
         mse = mean_squared_error(self.reconstruction_y_, mean_X_test)
         return -1*mse
-
-    def _get_deconvolved_x(self):
-        """Return x-values (locations) of deconvolved signal.
-        (photon energies for PAX)
-        """
-        #a = 1/0
-        #average_impulse_x = np.mean(self.impulse_response_x)
-        #deconvolved_x = self.convolved_x-average_impulse_x
-        #return deconvolved_x
-        first_point = self.convolved_x[0]-self.impulse_response_x[-1]
-        spacing = self.impulse_response_x[1]-self.impulse_response_x[0]
-        impulse_len = len(self.impulse_response_x)
-        convolved_len = len(self.convolved_x)
-        deconvolved_len = impulse_len-convolved_len+1
-        deconvolved_x = np.arange(first_point, first_point+deconvolved_len*spacing, spacing)
-        return deconvolved_x
 
 class LRFisterDeconvolve(LRDeconvolve):
     """Modifed Lucy-Richardson deconvolution with Fister regularization
@@ -298,7 +271,7 @@ class LRFisterDeconvolve(LRDeconvolve):
         self.impulse_response_x = impulse_response_x
         self.impulse_response_y = impulse_response_y
         self.convolved_x = convolved_x
-        self.deconvolved_x = self._get_deconvolved_x()
+        self.deconvolved_x = _get_deconvolved_x(self.convolved_x, self.impulse_response_x)
         self.regularization_strength = regularization_strength
         self.iterations = int(iterations)
         self.ground_truth_y = ground_truth_y
@@ -309,7 +282,7 @@ class LRFisterDeconvolve(LRDeconvolve):
         """Perform Fister-regularized modified Lucy-Richardson deconvolution of measured_y
         """
         x = np.arange(-1+2*len(self._deconvolution_guess(measured_y)))*(self.impulse_response_x[1]-self.impulse_response_x[0])
-        gauss = self._normalized_gaussian(
+        gauss = _normalized_gaussian(
             x,
             np.mean(x),
             self.regularization_strength
@@ -343,14 +316,26 @@ class LRFisterDeconvolve(LRDeconvolve):
         self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
         return self
 
-    def _normalized_gaussian(self, x, mu, sigma):
-        """Return a normalized gaussian function
+def _normalized_gaussian(x, mu, sigma):
+    """Return a normalized gaussian function
 
-        Parameters:
-            x {array-like}: locations to calculate Gaussian atß
-            mu: center of Gaussian
-            sigma: standard deviation of Gaussian
-        """
-        norm_gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
-        norm_gauss = norm_gauss/np.sum(norm_gauss)
-        return norm_gauss
+    Parameters:
+        x {array-like}: locations to calculate Gaussian atß
+        mu: center of Gaussian
+        sigma: standard deviation of Gaussian
+    """
+    norm_gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
+    norm_gauss = norm_gauss/np.sum(norm_gauss)
+    return norm_gauss
+
+def _get_deconvolved_x(convolved_x, impulse_response_x):
+    """Return x-values (locations) of deconvolved signal.
+    (photon energies for PAX)
+    """
+    first_point = np.amin(convolved_x)-np.amax(impulse_response_x)
+    spacing = np.abs(impulse_response_x[1]-impulse_response_x[0])
+    impulse_len = len(impulse_response_x)
+    convolved_len = len(convolved_x)
+    deconvolved_len = impulse_len-convolved_len+1
+    deconvolved_x = np.arange(first_point, first_point+deconvolved_len*spacing, spacing)
+    return deconvolved_x

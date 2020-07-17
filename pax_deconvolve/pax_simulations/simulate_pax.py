@@ -67,7 +67,7 @@ def _calculate_pax_kinetic_energy(xray_spectrum, photoemission_psf):
     #average_binding_energy = np.mean(photoemission_psf['x'])
     #kinetic_energy = photon_energy_in-average_binding_energy
     #return kinetic_energy
-    first_point = xray_spectrum['x'][0]+photoemission_psf['x'][-1]
+    first_point = xray_spectrum['x'][0]-photoemission_psf['x'][0]
     spacing = xray_spectrum['x'][1]-xray_spectrum['x'][0]
     pax_length = len(photoemission_psf['x'])-len(xray_spectrum['x'])+1
     kinetic_energy = np.arange(first_point, first_point+pax_length*spacing, spacing)
