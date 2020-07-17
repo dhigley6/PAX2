@@ -281,13 +281,13 @@ class LRFisterDeconvolve(LRDeconvolve):
     def _LR_fister(self, measured_y):
         """Perform Fister-regularized modified Lucy-Richardson deconvolution of measured_y
         """
-        x = np.arange(-1+2*len(self._deconvolution_guess(measured_y)))*(self.impulse_response_x[1]-self.impulse_response_x[0])
+        previous_O = self._deconvolution_guess(measured_y)    # initial guess
+        x = np.arange(len(self.deconvolved_x))*(self.impulse_response_x[1]-self.impulse_response_x[0])
         gauss = _normalized_gaussian(
             x,
             np.mean(x),
             self.regularization_strength
         )
-        previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
         ones_vec = np.ones_like(measured_y)
         if self.logging:
@@ -298,7 +298,7 @@ class LRFisterDeconvolve(LRDeconvolve):
             gradient = (convolve(impulse_response_y_reversed, ones_vec, mode='valid')
                         -convolve(impulse_response_y_reversed, correction_factor, mode='valid'))
             current_O = previous_O*(1-gradient)
-            current_O = convolve(current_O, gauss, mode='valid')
+            current_O = convolve(current_O, gauss, mode='same')
             previous_O = current_O
             if self.logging:
                 with writer.as_default():
