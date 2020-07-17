@@ -75,9 +75,35 @@ class LRFisterGrid(BaseEstimator):
     def fit(self, X):
         """Deconvolve data
 
+        Uses cross validation-like procedure to choose regularization strength
+
         Parameters:
             X (2d array-like): first dimension is different measurements,
                                second dimension is intensities at different points
+        """
+        self.measured_y_ = np.mean(X, axis=0)    # Average measurement
+        cv_deconvolver = self._create_cv_deconvolution_estimator()
+        cv_deconvolver.fit(X)
+        self._record_deconvolution_results(cv_deconvolver)
+        return self
+
+    def _record_deconvolution_results(self, cv_deconvolver):
+        """Record results of deconvolution as attributes of self
+        """
+        self.best_regularization_strength_ = cv_deconvolver.best_params_['regularization_strength']
+        self.deconvolved_y_ = cv_deconvolver.best_estimator_.deconvolved_y_
+        self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
+        self.reconstruction_train_mse_ = -1*cv_deconvolver.cv_results_['mean_train_reconstruction']
+        self.reconstruction_train_mse_std_ = cv_deconvolver.cv_results_['std_train_reconstruction']
+        self.cv_ = -1*cv_deconvolver.cv_results_['mean_test_reconstruction']
+        self.cv_std_ = cv_deconvolver.cv_results_['std_test_reconstruction']
+        if self.ground_truth_y is not None:
+            # if the ground truth is known, we can calculate and record deconvolved errors
+            self.deconvolved_mse_ = -1*cv_deconvolver.cv_results_['mean_test_deconvolved']
+            self.deconvolved_mse_std_ = cv_deconvolver.cv_results_['std_test_deconvolved']
+
+    def _create_cv_deconvolution_estimator(self):
+        """Create deconvolution estimator that uses cross validation for selecting regularization
         """
         deconvolver = LRFisterDeconvolve(
             self.impulse_response_x,
@@ -88,13 +114,11 @@ class LRFisterGrid(BaseEstimator):
             logging=False
         )
         param_grid = {'regularization_strength': self.regularization_strengths}
+        scoring = {'reconstruction': deconvolution_metrics.neg_reconstruction_mse}
         if self.ground_truth_y is not None:
-            scoring = {
-                'deconvolved': deconvolution_metrics.neg_deconvolved_mse,
-                'reconstruction': deconvolution_metrics.neg_reconstruction_mse}
-        else:
-            scoring = {'reconstruction': deconvolution_metrics.neg_reconstruction_mse}
-        deconvolver_gs = GridSearchCV(
+            # we have access to ground truth, so we can calculate deconvolved MSE
+            scoring.update({'deconvolved': deconvolution_metrics.neg_deconvolved_mse})
+        cv_deconvolver = GridSearchCV(
             deconvolver,
             param_grid,
             cv=self.cv_folds,
@@ -104,19 +128,7 @@ class LRFisterGrid(BaseEstimator):
             refit='reconstruction',
             n_jobs=-1
         )
-        deconvolver_gs.fit(X)
-        self.best_regularization_strength_ = deconvolver_gs.best_params_['regularization_strength']
-        self.measured_y_ = np.mean(X, axis=0)     # Average measurement
-        self.deconvolved_y_ = deconvolver_gs.best_estimator_.deconvolved_y_
-        self.reconstruction_y_ = convolve(self.deconvolved_y_, self.impulse_response_y, mode='valid')
-        if self.ground_truth_y is not None:
-            self.deconvolved_mse_ = -1*deconvolver_gs.cv_results_['mean_test_deconvolved']
-            self.deconvolved_mse_std_ = deconvolver_gs.cv_results_['std_test_deconvolved']
-        self.reconstruction_train_mse_ = -1*deconvolver_gs.cv_results_['mean_train_reconstruction']
-        self.reconstruction_train_mse_std_ = deconvolver_gs.cv_results_['std_train_reconstruction']
-        self.cv_ = -1*deconvolver_gs.cv_results_['mean_test_reconstruction']
-        self.cv_std_ = deconvolver_gs.cv_results_['std_test_reconstruction']
-        return self
+        return cv_deconvolver
 
     def predict(self, X=None):
         """Return estimated deconvolved signal.
