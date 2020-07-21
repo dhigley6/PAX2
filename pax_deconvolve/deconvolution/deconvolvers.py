@@ -283,8 +283,6 @@ class LRDeconvolve(BaseEstimator):
         x = self.impulse_response_x
         mu = np.mean(x)
         gauss = _normalized_gaussian(x, mu, sigma)
-        # gauss = np.exp((-1/2)*((x-mu)/sigma)**2)
-        # gauss = gauss/np.sum(gauss)
         convolved = convolve(measured_y, gauss, mode="valid")
         num_pad = len(convolved) - len(self.deconvolved_x)
         return np.pad(
@@ -430,7 +428,5 @@ def _get_deconvolved_x(
     impulse_len = len(impulse_response_x)
     convolved_len = len(convolved_x)
     deconvolved_len = impulse_len - convolved_len + 1
-    deconvolved_x = np.arange(
-        first_point, first_point + deconvolved_len * spacing, spacing
-    )
+    deconvolved_x = np.linspace(first_point, first_point + (deconvolved_len-1) * spacing, deconvolved_len)
     return deconvolved_x
