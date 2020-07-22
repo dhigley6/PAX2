@@ -225,21 +225,15 @@ class LRDeconvolve(BaseEstimator):
         """
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
+        ones_vec = np.ones_like(measured_y)
         if self.logging:
             writer = tf.summary.create_file_writer(f"{LOGDIR}unregularized")
         for iteration in range(self.iterations):
-            ones_vec = np.ones_like(previous_O)
-            blurred = convolve(self.impulse_response_y, previous_O, mode="valid")
-            correction_factor = measured_y / blurred
-            gradient = convolve(
-                impulse_response_y_reversed, ones_vec, mode="valid"
-            ) - convolve(impulse_response_y_reversed, correction_factor, mode="valid")
-            current_O = previous_O * (1 - gradient)
+            current_O = _LR_iteration(measured_y, self.impulse_response_y, previous_O, impulse_response_y_reversed, ones_vec)
             previous_O = current_O
             if self.logging:
                 with writer.as_default():
                     self._save_iteration_stats(current_O, iteration)
-            writer.flush()
         return current_O
 
     def _save_iteration_stats(self, current_deconvolved: np.ndarray, iteration: int):
@@ -365,12 +359,7 @@ class LRFisterDeconvolve(LRDeconvolve):
                 f"{LOGDIR}{self.regularization_strength}"
             )
         for iteration in range(self.iterations):
-            blurred = convolve(self.impulse_response_y, previous_O, mode="valid")
-            correction_factor = measured_y / blurred
-            gradient = convolve(
-                impulse_response_y_reversed, ones_vec, mode="valid"
-            ) - convolve(impulse_response_y_reversed, correction_factor, mode="valid")
-            current_O = previous_O * (1 - gradient)
+            current_O = _LR_iteration(measured_y, self.impulse_response_y, previous_O, impulse_response_y_reversed, ones_vec)
             current_O = convolve(
                 current_O, regularization_gauss, mode="same"
             )  # apply regularization
@@ -402,6 +391,16 @@ class LRFisterDeconvolve(LRDeconvolve):
             self.deconvolved_y_, self.impulse_response_y, mode="valid"
         )
         return self
+
+def _LR_iteration(measured_y, impulse_response_y, previous_O, impulse_response_y_reversed, ones_like_measured):
+    """Single iteration of unregularized Lucy-Richardson deconvolution"""
+    blurred = convolve(impulse_response_y, previous_O, mode='valid')
+    correction_factor = measured_y / blurred
+    gradient_term1 = convolve(impulse_response_y_reversed, ones_like_measured, mode='valid')
+    gradient_term2 = -1*convolve(impulse_response_y_reversed, correction_factor, mode='valid')
+    gradient = gradient_term1+gradient_term2
+    current_O = previous_O*(1-gradient)
+    return current_O
 
 
 def _normalized_gaussian(x: np.ndarray, mu: float, sigma: float) -> np.ndarray:
