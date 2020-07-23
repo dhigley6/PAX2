@@ -229,7 +229,13 @@ class LRDeconvolve(BaseEstimator):
         if self.logging:
             writer = tf.summary.create_file_writer(f"{LOGDIR}unregularized")
         for iteration in range(self.iterations):
-            current_O = _LR_iteration(measured_y, self.impulse_response_y, previous_O, impulse_response_y_reversed, ones_vec)
+            current_O = _LR_iteration(
+                measured_y,
+                self.impulse_response_y,
+                previous_O,
+                impulse_response_y_reversed,
+                ones_vec,
+            )
             previous_O = current_O
             if self.logging:
                 with writer.as_default():
@@ -359,7 +365,13 @@ class LRFisterDeconvolve(LRDeconvolve):
                 f"{LOGDIR}{self.regularization_strength}"
             )
         for iteration in range(self.iterations):
-            current_O = _LR_iteration(measured_y, self.impulse_response_y, previous_O, impulse_response_y_reversed, ones_vec)
+            current_O = _LR_iteration(
+                measured_y,
+                self.impulse_response_y,
+                previous_O,
+                impulse_response_y_reversed,
+                ones_vec,
+            )
             current_O = convolve(
                 current_O, regularization_gauss, mode="same"
             )  # apply regularization
@@ -392,14 +404,25 @@ class LRFisterDeconvolve(LRDeconvolve):
         )
         return self
 
-def _LR_iteration(measured_y, impulse_response_y, previous_O, impulse_response_y_reversed, ones_like_measured):
+
+def _LR_iteration(
+    measured_y,
+    impulse_response_y,
+    previous_O,
+    impulse_response_y_reversed,
+    ones_like_measured,
+):
     """Single iteration of unregularized Lucy-Richardson deconvolution"""
-    blurred = convolve(impulse_response_y, previous_O, mode='valid')
+    blurred = convolve(impulse_response_y, previous_O, mode="valid")
     correction_factor = measured_y / blurred
-    gradient_term1 = convolve(impulse_response_y_reversed, ones_like_measured, mode='valid')
-    gradient_term2 = -1*convolve(impulse_response_y_reversed, correction_factor, mode='valid')
-    gradient = gradient_term1+gradient_term2
-    current_O = previous_O*(1-gradient)
+    gradient_term1 = convolve(
+        impulse_response_y_reversed, ones_like_measured, mode="valid"
+    )
+    gradient_term2 = -1 * convolve(
+        impulse_response_y_reversed, correction_factor, mode="valid"
+    )
+    gradient = gradient_term1 + gradient_term2
+    current_O = previous_O * (1 - gradient)
     return current_O
 
 
@@ -427,5 +450,7 @@ def _get_deconvolved_x(
     impulse_len = len(impulse_response_x)
     convolved_len = len(convolved_x)
     deconvolved_len = impulse_len - convolved_len + 1
-    deconvolved_x = np.linspace(first_point, first_point + (deconvolved_len-1) * spacing, deconvolved_len)
+    deconvolved_x = np.linspace(
+        first_point, first_point + (deconvolved_len - 1) * spacing, deconvolved_len
+    )
     return deconvolved_x
