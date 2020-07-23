@@ -17,9 +17,9 @@ def run(
     impulse_response_y: np.ndarray,
     convolved_x: np.ndarray,
     convolved_y: np.ndarray,
-    ground_truth_y: np.ndarray,
     regularizer_widths: List[float],
     iterations: int,
+    ground_truth_y: Optional[np.ndarray] = None
 ):
     """Log deconvolution results as a function of iteration number using tensorboard
 
@@ -36,12 +36,12 @@ def run(
     convolved_y: (M, A) array_like
         Two-dimensional y-values (intensities) of convolved data
         Each row is a separate measurement/simulation and each column is a separate location
-    ground_truth_y: (N-M+1,) array_like
-        One-dimensional y-values (intensities) of ground truth deconvolved data
     regularizer_widths: list of floats
         regularization strengths to test
     iterations: int
         Number of iterations to do
+    ground_truth_y: (N-M+1,) array_like, optional
+        One-dimensional y-values (intensities) of ground truth deconvolved data
     """
     convolved_train_y, convolved_val_y = _split_convolved_data(convolved_y)
     Parallel(n_jobs=-1)(
@@ -50,10 +50,10 @@ def run(
             impulse_response_y,
             convolved_x,
             convolved_train_y,
-            ground_truth_y,
             regularizer_width,
             iterations,
             convolved_val_y,
+            ground_truth_y
         )
         for regularizer_width in regularizer_widths
     )
@@ -88,10 +88,10 @@ def _run_single_deconvolver(
     impulse_response_y: np.ndarray,
     convolved_x: np.ndarray,
     train_convolved_y: np.ndarray,
-    ground_truth_y: np.ndarray,
     regularizer_width: float,
     iterations: int,
     val_convolved_y: np.ndarray,
+    ground_truth_y: Optional[np.ndarray] = None
 ):
     """Run deconvolution with logging for a single regularization strength/regularization width
 
@@ -105,14 +105,14 @@ def _run_single_deconvolver(
         One-dimensional x-values (locations) of impulse response
     train_convolved_y: (M, A) array_like
         Two-dimensional y-values (intensities) of training part of convolved data
-    ground_truth_y: (N-M+1,) array_like
-        One-dimensional y-values (intensities) of ground truth of deconvolution
     regularizer_width: float
         Regularization strength to use
     iterations: int
         Number of iterations to run
     val_convolved_y: (M,) array_like
         One-dimensional y-values (intensities) of validation part of convolved data
+    ground_truth_y: (N-M+1,) array_like, optional
+        One-dimensional y-values (intensities) of ground truth of deconvolution
     """
     if regularizer_width == 0:
         deconvolver = deconvolvers.LRDeconvolve(
