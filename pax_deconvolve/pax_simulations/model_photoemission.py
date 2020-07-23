@@ -6,6 +6,7 @@ Created on Fri Dec 21 16:12:02 2018
 Generate model photoemission spectra given input binding energies.
 """
 
+from typing import Dict, Callable
 import numpy as np
 
 BOLTZMANN_CONSTANT = 8.617E-5    # (eV/K) Taken from wikipedia
@@ -29,7 +30,7 @@ AG_3D_CENTER = 372
 
 FERMI_CENTER = 0
 
-def make_model_photoemission(photoemission, xray_x, energy_spacing):
+def make_model_photoemission(photoemission: str, xray_x: np.ndarray) -> Dict[str, np.ndarray]:
     if photoemission == 'ag':
         center = AG_3D_CENTER
     elif photoemission == 'ag_with_bg':
@@ -38,6 +39,7 @@ def make_model_photoemission(photoemission, xray_x, energy_spacing):
         center = FERMI_CENTER
     elif photoemission == 'au_4f':
         center = AU_4F_CENTER
+    energy_spacing = xray_x[1]-xray_x[0]
     binding_energy = calculate_binding_energies(
         len(xray_x),
         energy_spacing,
@@ -45,7 +47,7 @@ def make_model_photoemission(photoemission, xray_x, energy_spacing):
     photoemission_xy = _model_photoemission_function(photoemission)(binding_energy)
     return photoemission_xy
 
-def _model_photoemission_function(photoemission):
+def _model_photoemission_function(photoemission: str) -> Callable[[np.ndarray], Dict[str, np.ndarray]]:
     if photoemission == 'ag':
         return get_ag_3d_spectrum
     elif photoemission == 'ag_with_bg':
@@ -57,9 +59,9 @@ def _model_photoemission_function(photoemission):
     else:
         raise ValueError('Invalid "photoemission" type')
 
-def calculate_binding_energies(points_in_spectrum, 
-                               energy_spacing,
-                               center_binding_energy):
+def calculate_binding_energies(points_in_spectrum: int, 
+                               energy_spacing: float,
+                               center_binding_energy: float) -> np.ndarray:
     """Calculate appropriate binding energies to use for simulation
     The binding energies should be 
       - centered around the main photoemission features,
@@ -73,7 +75,7 @@ def calculate_binding_energies(points_in_spectrum,
     binding_energies = binding_energies-np.mean(binding_energies)+center_binding_energy
     return binding_energies
 
-def get_au_4f_spectrum(binding_energy):
+def get_au_4f_spectrum(binding_energy: np.ndarray) -> Dict[str, np.ndarray]:
     """Return model photoemission spectrum for Au 4f levels
     """
     b2 = AU_4F_BROAD/2
@@ -86,7 +88,7 @@ def get_au_4f_spectrum(binding_energy):
     }
     return au_4f_photoemission
 
-def get_ag_3d_with_bg(binding_energy):
+def get_ag_3d_with_bg(binding_energy: np.ndarray) -> Dict[str, np.ndarray]:
     """Return photoemission spectrom for Ag 3d levels with artificial background added
     """
     raw_ag_3d_spectrum = get_ag_3d_spectrum(binding_energy)
@@ -96,7 +98,7 @@ def get_ag_3d_with_bg(binding_energy):
     ag_3d_spectrum_with_bg['y'] = raw_ag_3d_spectrum['y']+bg
     return ag_3d_spectrum_with_bg
 
-def get_ag_3d_spectrum(binding_energy):
+def get_ag_3d_spectrum(binding_energy: np.ndarray) -> Dict[str, np.ndarray]:
     """Return model photoemission spectrum for Ag 3d levels
     """
     b2 = AG_3D_BROAD/2      # abbreviation for half of broadening
@@ -111,7 +113,7 @@ def get_ag_3d_spectrum(binding_energy):
     }
     return ag_3d_photoemission
 
-def get_fermi_dirac(binding_energy, T=4):
+def get_fermi_dirac(binding_energy: np.ndarray, T: float = 4) -> Dict[str, np.ndarray]:
     """Model Fermi edge spectrum
     """
     kbt = T*BOLTZMANN_CONSTANT

@@ -17,8 +17,7 @@ def simulate_from_presets(total_log10_num_electrons, rixs, photoemission, num_si
     """
     total_counts = 10**total_log10_num_electrons
     xray_xy = model_rixs.make_model_rixs(rixs, energy_loss)
-    energy_spacing = energy_loss[1]-energy_loss[0]
-    photoemission_xy = model_photoemission.make_model_photoemission(photoemission, xray_xy['x'], energy_spacing)
+    photoemission_xy = model_photoemission.make_model_photoemission(photoemission, xray_xy['x'])
     impulse_response, pax_spectra = simulate(
         xray_xy,
         photoemission_xy,
