@@ -6,35 +6,37 @@ Created on Wed Oct  3 14:52:26 2018
 Generate model RIXS spectra given input X-ray energy losses.
 """
 
+from typing import Dict, Callable, List
 import numpy as np
 
-INCIDENT_ENERGY = 778    # Default incident photon energy
+INCIDENT_ENERGY = 778.0  # Default incident photon energy
 
-def make_model_rixs(rixs, energy_loss, incident_photon_energy=INCIDENT_ENERGY):
-    rixs_xy = _model_rixs_function(rixs)(
-        energy_loss,
-        incident_photon_energy)
+
+def make_model_rixs(
+    rixs: Union[str, List[Union[int, str]]],
+    energy_loss: np.ndarray,
+    incident_photon_energy: float = INCIDENT_ENERGY,
+) -> Dict[str, np.ndarray]:
+    rixs_xy = _model_rixs_function(rixs)(energy_loss, incident_photon_energy)
     return rixs_xy
 
-def _model_rixs_function(rixs):
-    if rixs == 'schlappa':
+
+def _model_rixs_function(rixs: str,) -> Callable[[...], Dict[str, np.ndarray]]:
+    if rixs == "schlappa":
         return get_schlappa_rixs
-    elif rixs == 'georgi':
+    elif rixs == "georgi":
         return get_georgi_rixs
     elif isinstance(rixs, list):
-        if rixs[0] == 'doublet':
+        if rixs[0] == "doublet":
             separation = rixs[1]
             doublet = lambda x, incident_photon_energy: get_doublet(
-                x,
-                incident_photon_energy,
-                separation=separation)
+                x, incident_photon_energy, separation=separation
+            )
             return doublet
-        elif rixs[0] == 'i_doublet':
+        elif rixs[0] == "i_doublet":
             separation = rixs[1]
             c_doublet = lambda x, incident_photon_energy: get_independent_doublet(
-                x,
-                incident_photon_energy,
-                separation=separation
+                x, incident_photon_energy, separation=separation
             )
             return c_doublet
         else:
@@ -42,68 +44,73 @@ def _model_rixs_function(rixs):
     else:
         raise ValueError('Invalid "rixs" type')
 
-def get_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5):
+
+def get_doublet(
+    energy_loss: np.ndarray,
+    incident_energy: float = INCIDENT_ENERGY,
+    separation: float = 0.5,
+) -> Dict[str, np.ndarray]:
     """Doublet with seperation = 10xwidth
     """
-    width = separation/10
-    elastic_peak = np.exp(-((energy_loss-0)/width)**2)
-    loss_peak = np.exp(-((energy_loss-separation)/width)**2)
-    y = elastic_peak+loss_peak
-    y = y/np.sum(y)
-    doublet = {'x': incident_energy-np.flipud(energy_loss),
-               'y': np.flipud(y),
-               'x_min': -0.2+incident_energy,
-               'x_max': separation+0.2+incident_energy}
+    width = separation / 10
+    elastic_peak = np.exp(-(((energy_loss - 0) / width) ** 2))
+    loss_peak = np.exp(-(((energy_loss - separation) / width) ** 2))
+    y = elastic_peak + loss_peak
+    y = y / np.sum(y)
+    doublet = {"x": incident_energy - np.flipud(energy_loss), "y": np.flipud(y)}
     return doublet
 
-def get_independent_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5, fwhm=0.05):
+
+def get_independent_doublet(
+    energy_loss: np.ndarray,
+    incident_energy: float = INCIDENT_ENERGY,
+    separation: float = 0.5,
+    fwhm: float = 0.05,
+) -> Dict[str, np.ndarray]:
     """Doublet with independent separation and peak width
     """
-    sigma = fwhm/(2*np.sqrt(2*np.log(2)))
-    elastic_peak = np.exp(-((energy_loss-0)/sigma)**2)
-    loss_peak = np.exp(-((energy_loss-separation)/sigma)**2)
-    y = elastic_peak+loss_peak
-    y = y/np.sum(y)
-    doublet = {
-        'x': incident_energy-np.flipud(energy_loss),
-        'y': np.flipud(y)
-    }
+    sigma = fwhm / (2 * np.sqrt(2 * np.log(2)))
+    elastic_peak = np.exp(-(((energy_loss - 0) / sigma) ** 2))
+    loss_peak = np.exp(-(((energy_loss - separation) / sigma) ** 2))
+    y = elastic_peak + loss_peak
+    y = y / np.sum(y)
+    doublet = {"x": incident_energy - np.flipud(energy_loss), "y": np.flipud(y)}
     return doublet
 
-def get_georgi_rixs(energy_loss, incident_energy=INCIDENT_ENERGY):
+
+def get_georgi_rixs(
+    energy_loss: np.ndarray, incident_energy: float = INCIDENT_ENERGY
+) -> Dict[str, np.ndarray]:
     """Return RIXS spectrum made up by Georgi
     """
-    p1 = np.exp(-((energy_loss-0)/0.02)**2)
-    p2 = 6*np.exp(-((energy_loss-0.1)/0.02)**2)
-    p3 = 1.5*np.exp(-((energy_loss-0.2)/0.05)**2)
-    p4 = 2*np.exp(-((energy_loss-0.5)/0.03)**2)
-    p5 = 1.75*np.exp(-((energy_loss-0.6)/0.1)**2)
-    p6 = 1.5*np.exp(-((energy_loss-0.9)/0.1)**2)
-    y = p1+p2+p3+p4+p5+p6
-    georgi_rixs = {'x': incident_energy-np.flipud(energy_loss),
-                   'y': np.flipud(y),
-                   'x_min': -0.5+incident_energy,
-                   'x_max': 1.5+incident_energy}
+    p1 = np.exp(-(((energy_loss - 0) / 0.02) ** 2))
+    p2 = 6 * np.exp(-(((energy_loss - 0.1) / 0.02) ** 2))
+    p3 = 1.5 * np.exp(-(((energy_loss - 0.2) / 0.05) ** 2))
+    p4 = 2 * np.exp(-(((energy_loss - 0.5) / 0.03) ** 2))
+    p5 = 1.75 * np.exp(-(((energy_loss - 0.6) / 0.1) ** 2))
+    p6 = 1.5 * np.exp(-(((energy_loss - 0.9) / 0.1) ** 2))
+    y = p1 + p2 + p3 + p4 + p5 + p6
+    georgi_rixs = {"x": incident_energy - np.flipud(energy_loss), "y": np.flipud(y)}
     return georgi_rixs
 
-def get_schlappa_rixs(energy_loss, incident_energy=INCIDENT_ENERGY):
+
+def get_schlappa_rixs(
+    energy_loss: np.ndarray, incident_energy: float = INCIDENT_ENERGY
+) -> Dict[str, np.ndarray]:
     """Return RIXS spectrum to approximate that measured in Schlappa et al.
     Parameters were chosen to approximate the spectrum shown in Fig. 2b of
     J. Schlappa et al., "Spin-orbital separation in the quasi-one-dimensional
     Mott insulator Sr_2CuO_3" 
     Nature 485, 82-85 (2012)
     """
-    p1 = 8*np.exp(-((energy_loss-0.25)/0.05)**2)
-    p2 = 23*np.exp(-((energy_loss-1.8)/0.2)**2)
-    p3 = 26*np.exp(-((energy_loss-2.2)/0.2)**2)
-    p4 = 9*np.exp(-((energy_loss-2.9)/0.3)**2)
-    p5 = 3*np.exp(-((energy_loss-4.5)/0.5)**2)
-    p6 = 3*np.exp(-((energy_loss-5.2)/0.75)**2)
-    y = p1+p2+p3+p4+p5+p6
+    p1 = 8 * np.exp(-(((energy_loss - 0.25) / 0.05) ** 2))
+    p2 = 23 * np.exp(-(((energy_loss - 1.8) / 0.2) ** 2))
+    p3 = 26 * np.exp(-(((energy_loss - 2.2) / 0.2) ** 2))
+    p4 = 9 * np.exp(-(((energy_loss - 2.9) / 0.3) ** 2))
+    p5 = 3 * np.exp(-(((energy_loss - 4.5) / 0.5) ** 2))
+    p6 = 3 * np.exp(-(((energy_loss - 5.2) / 0.75) ** 2))
+    y = p1 + p2 + p3 + p4 + p5 + p6
     y = np.flipud(y)
     y = np.clip(y, 0, None)
-    schlappa_rixs = {'x': incident_energy-np.flipud(energy_loss),
-                     'y': y,
-                     'x_min': -0.5+incident_energy,
-                     'x_max': 7+incident_energy}
+    schlappa_rixs = {"x": incident_energy - np.flipud(energy_loss), "y": y}
     return schlappa_rixs
