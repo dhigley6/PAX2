@@ -4,6 +4,7 @@ The intended use of this tool is to run it with the 'run' or 'run_pax_preset' fu
 below, then view the results using tensorboard on the log directory.
 """
 
+from typing import List, Optional, Tuple
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.model_selection import train_test_split
@@ -22,13 +23,13 @@ DEFAULT_PARAMETERS = {
 
 
 def run(
-    impulse_response_x, 
-    impulse_response_y,
-    convolved_x,
-    convolved_y, 
-    ground_truth_y, 
-    regularizer_widths, 
-    iterations
+    impulse_response_x: np.ndarray,
+    impulse_response_y: np.ndarray,
+    convolved_x: np.ndarray,
+    convolved_y: np.ndarray,
+    ground_truth_y: np.ndarray,
+    regularizer_widths: List[float],
+    iterations: int,
 ):
     """Log deconvolution results as a function of iteration number using tensorboard
     To be used to make sure deconvolutions have been run for sufficient iterations.
@@ -43,7 +44,7 @@ def run(
             ground_truth_y,
             regularizer_width,
             iterations,
-            convolved_val_y
+            convolved_val_y,
         )
         for regularizer_width in regularizer_widths
     )
@@ -51,7 +52,7 @@ def run(
     # _ = (run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
 
 
-def _split_convolved_data(convolved_y):
+def _split_convolved_data(convolved_y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Split convolved data into a training and validation set
     """
     convolved_train_y, convolved_validation_y = train_test_split(
@@ -62,14 +63,14 @@ def _split_convolved_data(convolved_y):
 
 
 def _run_single_deconvolver(
-    impulse_response_x,
-    impulse_response_y, 
-    convolved_x,
-    train_convolved_y, 
-    ground_truth_y, 
-    regularizer_width, 
-    iterations, 
-    val_pax_y
+    impulse_response_x: np.ndarray,
+    impulse_response_y: np.ndarray,
+    convolved_x: np.ndarray,
+    train_convolved_y: np.ndarray,
+    ground_truth_y: np.ndarray,
+    regularizer_width: List[float],
+    iterations: int,
+    val_pax_y: np.ndarray,
 ):
     """Run deconvolution with logging for a single regularization strength/regularization width
     """
