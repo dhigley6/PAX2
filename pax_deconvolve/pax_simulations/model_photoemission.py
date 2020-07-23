@@ -36,6 +36,8 @@ def make_model_photoemission(photoemission, xray_x, energy_spacing):
         center = AG_3D_CENTER
     elif photoemission == 'fermi':
         center = FERMI_CENTER
+    elif photoemission == 'au_4f':
+        center = AU_4F_CENTER
     binding_energy = calculate_binding_energies(
         len(xray_x),
         energy_spacing,
@@ -50,6 +52,8 @@ def _model_photoemission_function(photoemission):
         return get_ag_3d_with_bg
     elif photoemission == 'fermi':
         return get_fermi_dirac
+    elif photoemission == 'au_4f':
+        return get_au_4f_spectrum
     else:
         raise ValueError('Invalid "photoemission" type')
 
