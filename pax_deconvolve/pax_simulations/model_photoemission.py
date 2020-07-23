@@ -29,7 +29,7 @@ AG_3D_CENTER = 372
 
 FERMI_CENTER = 0
 
-def make_model_photoemission(photoemission, rixs_xy, energy_spacing):
+def make_model_photoemission(photoemission, xray_x, energy_spacing):
     if photoemission == 'ag':
         center = AG_3D_CENTER
     elif photoemission == 'ag_with_bg':
@@ -37,7 +37,7 @@ def make_model_photoemission(photoemission, rixs_xy, energy_spacing):
     elif photoemission == 'fermi':
         center = FERMI_CENTER
     binding_energy = calculate_binding_energies(
-        len(rixs_xy['x']),
+        len(xray_x),
         energy_spacing,
         center)
     photoemission_xy = _model_photoemission_function(photoemission)(binding_energy)
