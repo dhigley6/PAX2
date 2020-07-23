@@ -42,16 +42,6 @@ def _model_rixs_function(rixs):
     else:
         raise ValueError('Invalid "rixs" type')
 
-def get_elastic_peak(energy_loss, incident_energy=INCIDENT_ENERGY):
-    """RIXS spectrum consisting of a single peak at zero energy loss
-    """
-    y = 6*np.exp(-((energy_loss-0)/0.02)**2)
-    elastic_peak = {'x': incident_energy-np.flipud(energy_loss),
-                    'y': np.flipud(y),
-                    'x_min': -0.2+incident_energy,
-                    'x_max': 0.2+incident_energy}
-    return elastic_peak
-
 def get_doublet(energy_loss, incident_energy=INCIDENT_ENERGY, separation=0.5):
     """Doublet with seperation = 10xwidth
     """
@@ -95,25 +85,6 @@ def get_georgi_rixs(energy_loss, incident_energy=INCIDENT_ENERGY):
                    'x_min': -0.5+incident_energy,
                    'x_max': 1.5+incident_energy}
     return georgi_rixs
-
-def get_magnon_rixs(energy_loss, incident_energy=INCIDENT_ENERGY):
-    """Return RIXS spectrum to model magnon
-    Parameters chosen to approximate the spectrum shown in Fig. 4c of
-    J. Kim et al., "Magnetic Excitation Spectra of Sr_2IrO_4 Probed by
-    Resonant Inelastic X-Ray Scattering: Establishing Links to Cuprate
-    Superconductors"
-    PRL 108 177003 (2012)
-    """
-    p1 = 0.5*np.exp(-((energy_loss-0)/0.05)**2)
-    p2 = 2*np.exp(-((energy_loss-0.2)/0.1)**2)
-    p3 = 2*np.exp(-((energy_loss-0.55)/0.1)**2)
-    p4 = 2*np.exp(-((energy_loss-0.75)/0.25)**2)
-    y = p1+p2+p3+p4
-    magnon_rixs = {'x': incident_energy-np.flipud(energy_loss),
-                   'y': np.flipud(y),
-                   'x_min': -0.5+incident_energy,
-                   'x_max': 1.5+incident_energy}
-    return magnon_rixs
 
 def get_schlappa_rixs(energy_loss, incident_energy=INCIDENT_ENERGY):
     """Return RIXS spectrum to approximate that measured in Schlappa et al.
