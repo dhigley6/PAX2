@@ -21,21 +21,29 @@ DEFAULT_PARAMETERS = {
 }
 
 
-def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations):
+def run(
+    impulse_response_x, 
+    impulse_response_y,
+    convolved_x,
+    convolved_y, 
+    ground_truth_y, 
+    regularizer_widths, 
+    iterations
+):
     """Log deconvolution results as a function of iteration number using tensorboard
     To be used to make sure deconvolutions have been run for sufficient iterations.
     """
-    pax_spectra_train, val_pax_y = _split_pax_data(pax_spectra)
+    convolved_train_y, convolved_val_y = _split_convolved_data(convolved_y)
     Parallel(n_jobs=-1)(
         delayed(_run_single_deconvolver)(
-            impulse_response['x'],
-            impulse_response['y'],
-            pax_spectra_train['x'],
-            pax_spectra_train['y'],
-            xray_xy,
+            impulse_response_x,
+            impulse_response_y,
+            convolved_x,
+            convolved_train_y,
+            ground_truth_y,
             regularizer_width,
             iterations,
-            val_pax_y
+            convolved_val_y
         )
         for regularizer_width in regularizer_widths
     )
@@ -43,22 +51,25 @@ def run(impulse_response, pax_spectra, xray_xy, regularizer_widths, iterations):
     # _ = (run_single_deconvolver(impulse_response, pax_spectra, xray_xy, regularizer_width, iterations, val_pax_y) for regularizer_width in regularizer_widths)
 
 
-def _split_pax_data(pax_spectra):
-    """Split PAX data into a training and validation set
+def _split_convolved_data(convolved_y):
+    """Split convolved data into a training and validation set
     """
-    pax_spectra_train_y, pax_spectra_validation_y = train_test_split(
-        pax_spectra["y"], test_size=0.3
+    convolved_train_y, convolved_validation_y = train_test_split(
+        convolved_y, test_size=0.3
     )
-    pax_spectra_train = {"x": pax_spectra["x"], "y": pax_spectra_train_y}
-    val_pax_y = np.mean(pax_spectra_validation_y, axis=0)
-    return pax_spectra_train, val_pax_y
+    convolved_validation_y = np.mean(convolved_validation_y, axis=0)
+    return convolved_train_y, convolved_validation_y
 
 
 def _run_single_deconvolver(
     impulse_response_x,
     impulse_response_y, 
     convolved_x,
-    train_convolved_y, xray_xy, regularizer_width, iterations, val_pax_y
+    train_convolved_y, 
+    ground_truth_y, 
+    regularizer_width, 
+    iterations, 
+    val_pax_y
 ):
     """Run deconvolution with logging for a single regularization strength/regularization width
     """
@@ -68,7 +79,7 @@ def _run_single_deconvolver(
             impulse_response_y,
             convolved_x,
             iterations=iterations,
-            ground_truth_y=xray_xy["y"],
+            ground_truth_y=ground_truth_y,
             X_valid=val_pax_y,
             logging=True,
         )
@@ -79,7 +90,7 @@ def _run_single_deconvolver(
             convolved_x,
             regularization_strength=regularizer_width,
             iterations=iterations,
-            ground_truth_y=xray_xy["y"],
+            ground_truth_y=ground_truth_y,
             logging=True,
             X_valid=val_pax_y,
         )
