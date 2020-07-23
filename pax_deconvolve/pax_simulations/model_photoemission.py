@@ -50,11 +50,6 @@ def _model_photoemission_function(photoemission):
         return get_ag_3d_with_bg
     elif photoemission == 'fermi':
         return get_fermi_dirac
-    elif isinstance(photoemission, list):
-        if photoemission[0] == 'grating':
-            fwhm = photoemission[1]
-            grating = lambda x: grating_model(x, fwhm=fwhm)
-            return grating
     else:
         raise ValueError('Invalid "photoemission" type')
 
@@ -112,19 +107,6 @@ def get_ag_3d_spectrum(binding_energy):
     }
     return ag_3d_photoemission
 
-def get_fermi_spectrum(binding_energy):
-    """Model Fermi edge spectrum
-    """
-    y = np.sqrt(5-binding_energy)
-    y[binding_energy < 0] = 0
-    y[binding_energy > 5] = 0
-    y = y +1E-7
-    fermi_photoemission = {
-        'x': binding_energy,
-        'y': y/np.sum(y)
-    }
-    return fermi_photoemission
-
 def get_fermi_dirac(binding_energy, T=4):
     """Model Fermi edge spectrum
     """
@@ -135,29 +117,3 @@ def get_fermi_dirac(binding_energy, T=4):
         'y': y/np.sum(y)+1E-9,
     }
     return fermi_dirac_photoemission
-
-def grating_model(binding_energy, fwhm=AG_3D_BROAD, center=None):
-    """Return single peak to compare PAX to grating spectrometer
-    """
-    sigma = fwhm/2*np.sqrt(2*np.log(2))
-    epsilon = 1E-9    # small term used to prevent numerical errors
-    if center is None:
-        center = np.mean(binding_energy)
-    y = np.exp(-1*((binding_energy-center)/sigma)**2)+epsilon
-    result = {
-        'x': binding_energy,
-        'y': y/np.sum(y)
-    }
-    return result
-
-def two_narrow_peaks(binding_energy):
-    """Return model photoemission spectrum for two 30 meV Gaussians separated
-    by 250 meV
-    """
-    elastic_peak = np.exp(-((binding_energy-0)/0.03)**2)
-    inelastic_peak = 2*np.exp(-((binding_energy-0.25)/0.03)**2)
-    intensity = elastic_peak+inelastic_peak
-    photoemission = {'x': binding_energy,
-                     'y': intensity
-    }
-    return photoemission
