@@ -6,7 +6,7 @@ Created on Wed Oct  3 14:52:26 2018
 Generate model RIXS spectra given input X-ray energy losses.
 """
 
-from typing import Dict, Callable, List
+from typing import Dict, Union, Callable, List
 import numpy as np
 
 INCIDENT_ENERGY = 778.0  # Default incident photon energy
@@ -17,11 +17,50 @@ def make_model_rixs(
     energy_loss: np.ndarray,
     incident_photon_energy: float = INCIDENT_ENERGY,
 ) -> Dict[str, np.ndarray]:
+    """Return model RIXS photon energies and intensities
+
+    Parameters:
+    -----------
+    rixs: str or List
+        Which model RIXS function to use. Must be one of
+            - 'schlappa'
+            - 'georgi'
+            - ['doublet', separation]
+            - ['i_doublet', separation]
+        In the last two cases, the second entry of the list is the separation of the doublet peaks
+    energy_loss: (N,) array_like
+        One-dimensional energy loss values (units of eV)
+    incident_photon_energy: float
+        Incident photon energy to use for X-rays (eV)
+
+    Returns:
+    --------
+    rixs_xy: dictionary
+        'x' key gives photon energies of RIXS spectrum
+        'y' key gives intensities of RIXS spectrum
+    """
     rixs_xy = _model_rixs_function(rixs)(energy_loss, incident_photon_energy)
     return rixs_xy
 
 
-def _model_rixs_function(rixs: str,) -> Callable[[...], Dict[str, np.ndarray]]:
+def _model_rixs_function(rixs: Union[str, List[Union[int, str]]]) -> Callable[[...], Dict[str, np.ndarray]]:
+    """Return function for generating model RIXS spectrum
+
+    Parameters:
+    -----------
+    rixs: str
+        Which model RIXS function to use. Must be one of
+            - 'schlappa'
+            - 'georgi'
+            - ['doublet', separation]
+            - ['i_doublet', separation]
+        In the last two cases, the second entry of the list is the separation of the doublet peaks
+
+    Returns:
+    --------
+    out: function
+        Model RIXS function
+    """
     if rixs == "schlappa":
         return get_schlappa_rixs
     elif rixs == "georgi":
@@ -51,6 +90,21 @@ def get_doublet(
     separation: float = 0.5,
 ) -> Dict[str, np.ndarray]:
     """Doublet with seperation = 10xwidth
+
+    Parameters:
+    -----------
+    energy_loss: (N,) array_like
+        One-dimensional energy loss values (units of eV)
+    incident_energy: float, optional
+        Incident photon energy to use for X-rays (eV)
+    separation: float, optional
+        Peak-to-peak separation of doublet (eV)
+
+    Returns:
+    --------
+    doublet: dictionary
+        'x' key gives photon energies
+        'y' key gives intensities
     """
     width = separation / 10
     elastic_peak = np.exp(-(((energy_loss - 0) / width) ** 2))
@@ -68,6 +122,23 @@ def get_independent_doublet(
     fwhm: float = 0.05,
 ) -> Dict[str, np.ndarray]:
     """Doublet with independent separation and peak width
+
+    Parameters:
+    -----------
+    energy_loss: (N,) array_like
+        One-dimensional energy loss values (units of eV)
+    incident_energy: float, optional
+        Incident photon energy to use for X-rays (eV)
+    separation: float, optional
+        Peak-to-peak separation of doublet (eV)
+    fwhm: float, optional
+        Full-width-at-half-maximum of each peak of the doublet (eV)
+
+    Returns:
+    --------
+    doublet: dictionary
+        'x' key gives photon energies
+        'y' key gives intensities
     """
     sigma = fwhm / (2 * np.sqrt(2 * np.log(2)))
     elastic_peak = np.exp(-(((energy_loss - 0) / sigma) ** 2))
@@ -82,6 +153,19 @@ def get_georgi_rixs(
     energy_loss: np.ndarray, incident_energy: float = INCIDENT_ENERGY
 ) -> Dict[str, np.ndarray]:
     """Return RIXS spectrum made up by Georgi
+
+    Parameters:
+    -----------
+    energy_loss: (N,) array_like
+        One-dimensional energy loss values (units of eV)
+    incident_energy: float, optional
+        Incident photon energy to use for X-rays (eV)
+
+    Returns:
+    --------
+    georgi_rixs: dictionary
+        'x' key gives photon energies
+        'y' key gives intensities
     """
     p1 = np.exp(-(((energy_loss - 0) / 0.02) ** 2))
     p2 = 6 * np.exp(-(((energy_loss - 0.1) / 0.02) ** 2))
@@ -98,10 +182,25 @@ def get_schlappa_rixs(
     energy_loss: np.ndarray, incident_energy: float = INCIDENT_ENERGY
 ) -> Dict[str, np.ndarray]:
     """Return RIXS spectrum to approximate that measured in Schlappa et al.
+
     Parameters were chosen to approximate the spectrum shown in Fig. 2b of
     J. Schlappa et al., "Spin-orbital separation in the quasi-one-dimensional
     Mott insulator Sr_2CuO_3" 
     Nature 485, 82-85 (2012)
+
+
+    Parameters:
+    -----------
+    energy_loss: (N,) array_like
+        One-dimensional energy loss values (units of eV)
+    incident_energy: float, optional
+        Incident photon energy to use for X-rays (eV)
+
+    Returns:
+    --------
+    schlappa_rixs: dictionary
+        'x' key gives photon energies
+        'y' key gives intensities
     """
     p1 = 8 * np.exp(-(((energy_loss - 0.25) / 0.05) ** 2))
     p2 = 23 * np.exp(-(((energy_loss - 1.8) / 0.2) ** 2))
