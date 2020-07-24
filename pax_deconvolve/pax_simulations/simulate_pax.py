@@ -57,15 +57,10 @@ def _apply_poisson_noise(data, single_photon=1.0):
     single_photon is the number of counts that corresponds to a single
     detected photon.
     """
-    #data_clipped_below_zero = np.clip(data, 1E-6, None)
     output = np.random.poisson(data/single_photon)*single_photon
     return output
 
 def _calculate_pax_kinetic_energy(xray_spectrum, photoemission_psf):
-    #photon_energy_in = xray_spectrum['x']
-    #average_binding_energy = np.mean(photoemission_psf['x'])
-    #kinetic_energy = photon_energy_in-average_binding_energy
-    #return kinetic_energy
     first_point = xray_spectrum['x'][0]-photoemission_psf['x'][0]
     spacing = xray_spectrum['x'][1]-xray_spectrum['x'][0]
     pax_length = len(photoemission_psf['x'])-len(xray_spectrum['x'])+1
