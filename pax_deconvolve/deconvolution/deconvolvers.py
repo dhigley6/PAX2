@@ -279,7 +279,7 @@ class LRDeconvolve(BaseEstimator):
         """Return initial guess for deconvolved signal
         (use blurred version of measured_y with same length as deconvolved signal as guess)
         """
-        sigma = 1  # width of Gaussian blur
+        sigma = 0.1  # width of Gaussian blur
         x = self.impulse_response_x
         mu = np.mean(x)
         gauss = _normalized_gaussian(x, mu, sigma)
@@ -423,6 +423,7 @@ def _LR_iteration(
     )
     gradient = gradient_term1 + gradient_term2
     current_O = previous_O * (1 - gradient)
+    current_O = np.clip(current_O, 0, None)
     return current_O
 
 
