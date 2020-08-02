@@ -45,7 +45,7 @@ def make_model_rixs(
 
 def _model_rixs_function(
     rixs: Union[str, List[Union[int, str]]]
-) -> Callable[[...], Dict[str, np.ndarray]]:
+) -> Callable[..., Dict[str, np.ndarray]]:
     """Return function for generating model RIXS spectrum
 
     Parameters:
