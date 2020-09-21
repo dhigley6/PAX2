@@ -51,7 +51,8 @@ def _make_deconvolved_plot(
     deconvolved: Fitted instance of deconvolver in
         pax_deconvolve.deconvolution.deconvolvers
     """
-    ax.plot(deconvolved.deconvolved_x, deconvolved.ground_truth_y, label="Ground Truth")
+    if deconvolved.ground_truth_y is not None:
+        ax.plot(deconvolved.deconvolved_x, deconvolved.ground_truth_y, label="Ground Truth")
     ax.plot(deconvolved.deconvolved_x, deconvolved.deconvolved_y_, label="Deconvolved")
 
 
