@@ -7,7 +7,7 @@ Created on Tue Jul 24 14:23:08 2018
 
 import numpy as np
 
-PIXELS_TO_EV = 1.0/38.61111111
+PIXELS_TO_EV = 1.0/38.61111111    # Determined empirically
 
 runs_to_import = [17, 21, 22, 23, 24, 25, 27, 28, 29, 30, 32]
 fname_start = 'lcls_data/run00'
