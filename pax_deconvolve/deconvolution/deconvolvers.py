@@ -373,8 +373,9 @@ class LRFisterDeconvolve(LRDeconvolve):
                 ones_vec,
             )
             current_O = convolve(
-                current_O, regularization_gauss, mode="same"
+                current_O, regularization_gauss, mode='same'
             )  # apply regularization
+            #current_O = current_O*np.sum(previous_O)/np.sum(current_O)
             previous_O = current_O
             if self.logging:
                 with writer.as_default():
@@ -384,9 +385,12 @@ class LRFisterDeconvolve(LRDeconvolve):
     def _calculate_regularizing_gaussian(self) -> np.ndarray:
         """Calculate Fister-style Gaussian for regularization
         """
+        x = self.deconvolved_x
+        if len(x)%2 == 0:
+            x = x[1:]    # Make sure x is odd length and <= length of deconvolved data so that deconvolved spectrum is not shifted by this regularization
         gauss = _normalized_gaussian(
-            self.deconvolved_x,
-            np.mean(self.deconvolved_x),
+            x,
+            np.mean(x),
             self.regularization_strength,
         )
         return gauss
@@ -423,7 +427,7 @@ def _LR_iteration(
     )
     gradient = gradient_term1 + gradient_term2
     current_O = previous_O * (1 - gradient)
-    current_O = np.clip(current_O, 0, None)
+    current_O = np.clip(current_O, 1E-9, None)
     return current_O
 
 
