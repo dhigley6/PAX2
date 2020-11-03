@@ -8,9 +8,6 @@ from sklearn.metrics import mean_squared_error
 
 from pax_deconvolve.deconvolution import deconvolvers
 
-import pax_deconvolve.visualize as visualize
-
-
 def test_normalized_gausian_is_normalized():
     x = np.arange(100)
     mu = np.mean(x)
