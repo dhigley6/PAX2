@@ -102,7 +102,7 @@ def calculate_binding_energies(
 ) -> np.ndarray:
     """Calculate appropriate binding energies to use for simulation
 
-    The binding energies should be 
+    The binding energies should be
       - centered around the main photoemission features,
       - be length 2xlen(xray_spectrum)-1
       - have the same energy spacing as the X-ray spectrum

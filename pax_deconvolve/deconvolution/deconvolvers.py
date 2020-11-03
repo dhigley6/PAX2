@@ -28,27 +28,27 @@ class LRFisterGrid(BaseEstimator):
     """Fister-regularized deconvolution with regularization chosen by cross validation.
 
     Attributes:
-        impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
+        impulse_response_x {array-like of shape (n_i,)}: x-values (locations)
             of impulse response
-        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities) 
+        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities)
             of impulse response
-        convolved_x {array-like of shape (n_c,)}: x-values (locations) 
+        convolved_x {array-like of shape (n_c,)}: x-values (locations)
             of convolved data
         deconvolved_x {array-like of shape (n_c,)}: x-values (locations)
             of deconvolved data
-        regularization_strengths {array-like of shape (n_regularizers,)}: 
+        regularization_strengths {array-like of shape (n_regularizers,)}:
             Regularization strengths to try
         iterations (int): Number of iterations to use in deconvolution
-        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities) 
+        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities)
             of ground truth for deconvolution (None if not available)
         cv_folds (int): Number of folds of cross validation to do
-        best_regularization_strength_ {float}: Best regularization strength 
+        best_regularization_strength_ {float}: Best regularization strength
             found with cross validation
         measured_y_ {array-like of shape (n_c,)}: Average measurement
         deconvolved_y_ {array-like of shape (n_c,)}: Deconvolved intensities
         reconstruction_y_ {array-like of shape (n_c,)}: Reconstruction of
             input data from deconvolved result
-        deconvolved_mse_ {array-like of shape (n_regularizers,)}: mean squared 
+        deconvolved_mse_ {array-like of shape (n_regularizers,)}: mean squared
             error of deconvolved data as a function of regularization strength
         deconvolved_mse_std_ {array-like of shape (n_regularizers,)}: standard
             deviation of deconvolved_mse_
@@ -99,8 +99,7 @@ class LRFisterGrid(BaseEstimator):
         return self
 
     def _record_deconvolution_results(self, cv_deconvolver: GridSearchCV):
-        """Record results of deconvolution as attributes of self
-        """
+        """Record results of deconvolution as attributes of self"""
         self.best_regularization_strength_ = cv_deconvolver.best_params_[
             "regularization_strength"
         ]
@@ -126,8 +125,7 @@ class LRFisterGrid(BaseEstimator):
             ]
 
     def _create_cv_deconvolution_estimator(self) -> GridSearchCV:
-        """Create deconvolution estimator that uses cross validation for selecting regularization
-        """
+        """Create deconvolution estimator that uses cross validation for selecting regularization"""
         deconvolver = LRFisterDeconvolve(
             self.impulse_response_x,
             self.impulse_response_y,
@@ -167,16 +165,16 @@ class LRDeconvolve(BaseEstimator):
     (the modification enables handling a background)
 
     Attributes:
-        impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
+        impulse_response_x {array-like of shape (n_i,)}: x-values (locations)
             of impulse response
-        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities) 
+        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities)
             of impulse response
-        convolved_x {array-like of shape (n_c,)}: x-values (locations) 
+        convolved_x {array-like of shape (n_c,)}: x-values (locations)
             of convolved data
         deconvolved_x {array-like of shape (n_c,)}: x-values (locations)
             of deconvolved data
         iterations (int): Number of iterations to use in deconvolution
-        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities) 
+        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities)
             of ground truth for deconvolution (None if not available)
         X_valid {array-like of shape (n_c,)}: mean of validation data
         logging (boolean): log data in tensorboard if True
@@ -208,7 +206,7 @@ class LRDeconvolve(BaseEstimator):
         self.logging = logging
 
     def fit(self, X: np.ndarray) -> "LRDeconvolve":
-        """Perform deconvolution 
+        """Perform deconvolution
 
         parameters:
             X: array, rows are PAX spectra measurements, columns are specific electron energies
@@ -221,8 +219,7 @@ class LRDeconvolve(BaseEstimator):
         return self
 
     def _LR(self, measured_y: np.ndarray) -> np.ndarray:
-        """Perform modifed Lucy-Richardson deconvolution of measured_y
-        """
+        """Perform modifed Lucy-Richardson deconvolution of measured_y"""
         previous_O = self._deconvolution_guess(measured_y)
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
         ones_vec = np.ones_like(measured_y)
@@ -243,8 +240,7 @@ class LRDeconvolve(BaseEstimator):
         return current_O
 
     def _save_iteration_stats(self, current_deconvolved: np.ndarray, iteration: int):
-        """Calculate statistics from current result and save to tensorboard log
-        """
+        """Calculate statistics from current result and save to tensorboard log"""
         current_reconstruction = convolve(
             current_deconvolved, self.impulse_response_y, mode="valid"
         )
@@ -298,8 +294,7 @@ class LRDeconvolve(BaseEstimator):
         return self.deconvolved_y_
 
     def score(self, X_test: np.ndarray) -> float:
-        """Default scoring is reconstruction mean squared error
-        """
+        """Default scoring is reconstruction mean squared error"""
         mean_X_test = np.mean(X_test, axis=0)
         mse = mean_squared_error(self.reconstruction_y_, mean_X_test)
         return -1 * mse
@@ -310,17 +305,17 @@ class LRFisterDeconvolve(LRDeconvolve):
     (The modification enables handling of a background in the impulse response function)
 
     Attributes:
-        impulse_response_x {array-like of shape (n_i,)}: x-values (locations) 
+        impulse_response_x {array-like of shape (n_i,)}: x-values (locations)
             of impulse response
-        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities) 
+        impulse_response_y {array-like of shape (n_i,)}: y-values (intensities)
             of impulse response
-        convolved_x {array-like of shape (n_c,)}: x-values (locations) 
+        convolved_x {array-like of shape (n_c,)}: x-values (locations)
             of convolved data
         regularization_strength {float}: regularization strength
         deconvolved_x {array-like of shape (n_c,)}: x-values (locations)
             of deconvolved data
         iterations (int): Number of iterations to use in deconvolution
-        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities) 
+        ground_truth_y {array-like of shape (n_c,)}: y-values (intensities)
             of ground truth for deconvolution (None if not available)
         X_valid {array-like of shape (n_c,)}: mean of validation data
         logging (boolean): log data in tensorboard if True
@@ -354,8 +349,7 @@ class LRFisterDeconvolve(LRDeconvolve):
         self.logging = logging
 
     def _LR_fister(self, measured_y: np.ndarray) -> np.ndarray:
-        """Perform Fister-regularized modified Lucy-Richardson deconvolution of measured_y
-        """
+        """Perform Fister-regularized modified Lucy-Richardson deconvolution of measured_y"""
         previous_O = self._deconvolution_guess(measured_y)  # initial guess
         regularization_gauss = self._calculate_regularizing_gaussian()
         impulse_response_y_reversed = np.flip(self.impulse_response_y)
@@ -383,14 +377,17 @@ class LRFisterDeconvolve(LRDeconvolve):
         return current_O
 
     def _calculate_regularizing_gaussian(self) -> np.ndarray:
-        """Calculate Fister-style Gaussian for regularization
-        """
+        """Calculate Fister-style Gaussian for regularization"""
         x = self.deconvolved_x
         if len(x) % 2 == 0:
             x = x[
                 1:
             ]  # Make sure x is odd length and <= length of deconvolved data so that deconvolved spectrum is not shifted by this regularization
-        gauss = _normalized_gaussian(x, np.mean(x), self.regularization_strength,)
+        gauss = _normalized_gaussian(
+            x,
+            np.mean(x),
+            self.regularization_strength,
+        )
         return gauss
 
     def fit(self, X: np.ndarray) -> "LRFisterDeconvolve":

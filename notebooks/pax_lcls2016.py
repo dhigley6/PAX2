@@ -100,8 +100,7 @@ def get_extended_au4f_spectrum(energy_spacing, num_points):
 
 
 def get_lcls_specs():
-    """Return recorded LCLS PAX spectra
-    """
+    """Return recorded LCLS PAX spectra"""
     # runs in ascending order of incident photon energy:
     runs_to_get = ["24", "23", "22", "21", "25", "27", "28", "32", "29", "30"]
     spectra = []

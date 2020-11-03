@@ -30,7 +30,6 @@ def plot_photoemission(
 
 
 def _format_plot():
-    """Format photoemission plot
-    """
+    """Format photoemission plot"""
     plt.xlabel("Binding Energy (eV)")
     plt.ylabel("Intensity (a.u.)")
