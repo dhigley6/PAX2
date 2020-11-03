@@ -52,7 +52,9 @@ def _make_deconvolved_plot(
         pax_deconvolve.deconvolution.deconvolvers
     """
     if deconvolved.ground_truth_y is not None:
-        ax.plot(deconvolved.deconvolved_x, deconvolved.ground_truth_y, label="Ground Truth")
+        ax.plot(
+            deconvolved.deconvolved_x, deconvolved.ground_truth_y, label="Ground Truth"
+        )
     ax.plot(deconvolved.deconvolved_x, deconvolved.deconvolved_y_, label="Deconvolved")
 
 
