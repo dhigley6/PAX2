@@ -20,8 +20,8 @@ def test_normalized_gausian_is_normalized():
 def test_get_deconvolved_x():
     spacing = 0.1
     ground_truth_x = np.arange(-1, 10, spacing) + 5
-    impulse_response_x = np.arange(0, 20, spacing) + 2
-    first_point = ground_truth_x[0] + impulse_response_x[-1]
+    impulse_response_x = np.arange(0.1, 20, spacing) + 2
+    first_point = ground_truth_x[0] + impulse_response_x[len(ground_truth_x)]
     convolved_length = len(impulse_response_x) - len(ground_truth_x) + 1
     convolved_x = np.arange(
         first_point, first_point + convolved_length * spacing, spacing

@@ -65,7 +65,7 @@ def simulate_from_presets(
         xray_xy["y"], impulse_response_xy["y"], total_counts, num_simulations
     )
     pax_xy = {
-        "x": _calculate_pax_kinetic_energy(xray_xy["x"], impulse_response_xy['x']),
+        "x": _calculate_pax_kinetic_energy(xray_xy["x"], impulse_response_xy["x"]),
         "y": pax_y,
     }
     return impulse_response_xy, pax_xy, xray_xy
