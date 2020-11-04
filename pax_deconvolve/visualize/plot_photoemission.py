@@ -22,7 +22,7 @@ def plot_photoemission(
     deconvolved: Fitted instance of deconvolver in
         pax_deconvolve.deconvolution.deconvolvers
     """
-    binding_energy = -1 * deconvolved.impulse_response_x
+    binding_energy = -1 * np.flipud(deconvolved.impulse_response_x)
     photoemission = np.flipud(deconvolved.impulse_response_y)
     plt.figure()
     plt.plot(binding_energy, photoemission)

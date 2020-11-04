@@ -445,11 +445,11 @@ def _get_deconvolved_x(
     """Return x-values (locations) of deconvolved signal.
     (photon energies for PAX)
     """
-    first_point = np.amin(convolved_x) - np.amax(impulse_response_x)
-    spacing = np.abs(impulse_response_x[1] - impulse_response_x[0])
     impulse_len = len(impulse_response_x)
     convolved_len = len(convolved_x)
     deconvolved_len = impulse_len - convolved_len + 1
+    first_point = convolved_x[0]-impulse_response_x[deconvolved_len]
+    spacing = np.abs(impulse_response_x[1] - impulse_response_x[0])
     deconvolved_x = np.linspace(
         first_point, first_point + (deconvolved_len - 1) * spacing, deconvolved_len
     )

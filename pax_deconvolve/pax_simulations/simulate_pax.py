@@ -65,7 +65,7 @@ def simulate_from_presets(
         xray_xy["y"], impulse_response_xy["y"], total_counts, num_simulations
     )
     pax_xy = {
-        "x": _calculate_pax_kinetic_energy(xray_xy["x"], photoemission_xy["x"]),
+        "x": _calculate_pax_kinetic_energy(xray_xy["x"], impulse_response_xy['x']),
         "y": pax_y,
     }
     return impulse_response_xy, pax_xy, xray_xy
@@ -126,7 +126,7 @@ def calculate_pax_impulse_response(
         gives intensities
     """
     impulse_response = {
-        "x": -1 * photoemission_x,
+        "x": np.flipud(-1 * photoemission_x),
         "y": np.flipud(photoemission_y),
     }
     norm_factor = np.sum(impulse_response["y"])
@@ -173,7 +173,7 @@ def _calculate_pax_kinetic_energy(
     kinetic_energy: np.ndarray
         Kinetic energies (eV) of electrons in PAX spectrum
     """
-    first_point = xray_x[0] - impulse_response_x[0]
+    first_point = xray_x[0] + impulse_response_x[len(xray_x)]
     spacing = xray_x[1] - xray_x[0]
     pax_length = len(impulse_response_x) - len(xray_x) + 1
     kinetic_energy = np.arange(first_point, first_point + pax_length * spacing, spacing)
