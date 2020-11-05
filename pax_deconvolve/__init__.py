@@ -1,4 +1,4 @@
 from pax_deconvolve.pax_simulations.simulate_pax import simulate_from_presets
 from pax_deconvolve.deconvolution.assess_convergence import run as assess_convergence
-from pax_deconvolve.deconvolution.deconvolvers import LRFisterGrid, LRDeconvolve
+from pax_deconvolve.deconvolution.deconvolvers import LRFisterGrid, LRFisterDeconvolve
 from pax_deconvolve.visualize import plot_photoemission, plot_cv, plot_result
