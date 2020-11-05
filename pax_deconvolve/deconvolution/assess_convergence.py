@@ -19,7 +19,7 @@ def run(
     convolved_y: np.ndarray,
     regularizer_widths: List[float],
     iterations: int,
-    ground_truth_y: Optional[np.ndarray] = None
+    ground_truth_y: Optional[np.ndarray] = None,
 ):
     """Log deconvolution results as a function of iteration number using tensorboard
 
@@ -53,7 +53,7 @@ def run(
             regularizer_width,
             iterations,
             convolved_val_y,
-            ground_truth_y
+            ground_truth_y,
         )
         for regularizer_width in regularizer_widths
     )
@@ -91,7 +91,7 @@ def _run_single_deconvolver(
     regularizer_width: float,
     iterations: int,
     val_convolved_y: np.ndarray,
-    ground_truth_y: Optional[np.ndarray] = None
+    ground_truth_y: Optional[np.ndarray] = None,
 ):
     """Run deconvolution with logging for a single regularization strength/regularization width
 

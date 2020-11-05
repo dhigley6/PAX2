@@ -187,7 +187,7 @@ def get_schlappa_rixs(
 
     Parameters were chosen to approximate the spectrum shown in Fig. 2b of
     J. Schlappa et al., "Spin-orbital separation in the quasi-one-dimensional
-    Mott insulator Sr_2CuO_3" 
+    Mott insulator Sr_2CuO_3"
     Nature 485, 82-85 (2012)
 
 

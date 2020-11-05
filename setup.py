@@ -14,13 +14,13 @@ with open("requirements.txt", "r") as fh:
 
 
 setup(
-    name='pax2',
-    version='0.0.1',
-    description='deconvolution of PAX data and simulations',
-    long_description_content_type='text/markdown',
-    author='Daniel Higley',
-    author_email='dhigley@slac.stanford.edu',
+    name="pax2",
+    version="0.0.1",
+    description="deconvolution of PAX data and simulations",
+    long_description_content_type="text/markdown",
+    author="Daniel Higley",
+    author_email="dhigley@slac.stanford.edu",
     packages=find_packages(),
-    python_requires='>=3.6, <4',
-    install_requires=requirements
+    python_requires=">=3.6, <4",
+    install_requires=requirements,
 )
