@@ -24,7 +24,7 @@ def test_get_deconvolved_x():
     first_point = ground_truth_x[0] + impulse_response_x[len(ground_truth_x)]
     convolved_length = len(impulse_response_x) - len(ground_truth_x) + 1
     convolved_x = np.linspace(
-        first_point, first_point+spacing*convolved_length, convolved_length
+        first_point, first_point + spacing * convolved_length, convolved_length
     )
     re_deconvolved_x = deconvolvers._get_deconvolved_x(convolved_x, impulse_response_x)
     assert np.allclose(ground_truth_x, re_deconvolved_x)
