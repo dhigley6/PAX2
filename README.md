@@ -128,6 +128,31 @@ pax_deconvolve.plot_cv(deconvolver)
 
 ### Simulating PAX data
 
+The package includes a function for simulating PAX data under certain conditions.
+
+```
+impulse_response_xy, pax_spectra_xy, xray_xy = pax_deconvolve.simulate_from_presets(
+    log10_num_electrons,
+    'schlappa',
+    photoemission_mode,
+    num_simulations,
+    energy_loss,
+)
+impulse_response_x, impulse_response_y = impulse_response_xy['x'], impulse_response_xy['y']
+pax_spectra_x, pax_spectra_y = pax_spectra_xy['x'], pax_spectra_xy['y']
+xray_x, xray_y = xray_xy['x'], xray_xy['y']
+```
+
+The output variables have the same meanings as defined above. The inputs are defined as
+
+- log10_num_electrons: Base 10 logarithm of the integrated number of detected electrons in the simulated PAX spectra
+- photoemission_model: Which photoemission model to use, must be one of
+  - 'ag'
+  - 'ag_with_bg'
+  - 'au_4f'
+- num_simulations: Number of PAX spectra to simulate
+- energy_loss: Energy loss values for X-ray spectrum
+
 ## Examples
 
 See [Demonstration Notebook](https://github.com/dhigley6/PAX2/blob/master/notebooks/demonstration.ipynb) in notebooks folder. The notebook can also be accessed through Google Colaboratory:
@@ -135,6 +160,8 @@ See [Demonstration Notebook](https://github.com/dhigley6/PAX2/blob/master/notebo
 
 ## References
 
-[1] D. J. Higley, H. Ogasawara, S. Zohar and G. L. Dakovski, "Using Photoelectron Spectroscopy to Measure Resonant Inelastic X-Ray Scattering: A Computational Investigation" (under review, arxiv version: https://arxiv.org/abs/2006.10914)
-[2] G. L. Dakovski et al.
-[3] T. T. Fister et al.
+[1] D. J. Higley, H. Ogasawara, S. Zohar and G. L. Dakovski, "Using Photoelectron Spectroscopy to Measure Resonant Inelastic X-Ray Scattering: A Computational Investigation" (under review, arxiv version: https://arxiv.org/abs/2006.10914).
+
+[2] G. L. Dakovski, M.-F. Lin, D. S. Damiani, W. F. Schlotter, J. J. Turner, D. Nordlund, and H. Ogasawara, J. Synchrotron Radiat. **24**, 1180 (2017).
+
+[3] T. T. Fister, G. T. Seidler, J. J. Rehr, J. J. Kas, W. T. Elam, J. O. Cross, and K. P. Nagle, Phys. Rev. B **75**, 174106 (2007).
