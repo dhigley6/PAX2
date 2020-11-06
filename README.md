@@ -16,7 +16,15 @@ We assume we can model the expected value of a measured PAX spectrum as a discre
 
 ?
 
-It is conveinent to write this as 
+It is conveinent to write this as (Eq. 5)
+
+?
+
+We assume shot noise is the dominant noise source. In this case, we can approximate the measured PAX spectrum with a Poisson process. The probability of measuring a PAX spectrum is then
+
+?
+
+We then derive a method for iteratively minimizing the negative log-likelihood of the X-ray spectrum for the measured PAX and photoemission spectrum. We use the method proposed in [3] to regularize the deconvolution and prevent overfitting. Within this method, we convolve the estimated RIXS spectrum with a Gaussian of width sigma after each iteration. The width of the Gaussian sets the regularization strength with larger values giving stronger regularization and smoother spectra. We determine a criterion for estimating the optimal regularization strength in a self-supervised manner. We take the estimated RIXS spectrum, convolve it with the measured photoemission spectrum and determine the mean squared difference of this with respect to a different PAX spectrum measured in idential conditions. We showed with simulations in [1] that minimizing this mean squared difference approximately gives the regularization strength where the mean squared difference of estimated RIXS spectra and true RIXS spectra is minimized. 
 
 ## Installation
 
@@ -26,7 +34,99 @@ pip install git+https://github.com/dhigley6/PAX2
 
 ## Usage
 
+All of the functionality that is intended for use is described below. The central object is the LRFisterGrid class. This is a Scikit-Learn estimator-style class which estimates an X-ray spectrum given a set of PAX spectra measured under approximately identical conditions and the measured converter material photoemission spectrum. The best regularization strength is estimated from the data before estimating the X-ray spectrum. If one already knows the regularization strength they want to use, then they can use the LRFisterDeconvolve class.
 
+First, import the package
+
+```
+import pax_deconvolve
+```
+
+### Estimating X-ray spectra from PAX data
+
+X-ray spectra can be estimated from PAX data using the LRFisterGrid class. This is done by initializing the class, then running the fit method on PAX data. The result can be accessed for further processing with the fit method.
+
+```
+deconvolver = pax_deconvolve.LRFisterGrid(
+    impulse_response_x,
+    impulse_response_y,
+    convolved_x,
+    regularization_strengths,
+    iterations,
+    cv_folds=cv_folds,
+    ground_truth_y=ground_truth_y,
+)
+_ = deconvolver.fit(pax_spectra_y)
+estimated_best_regularization_strength = deconvolver.best_regularization_strength_
+estimated_xray_y = deconvolver.predict()
+estimated_xray_x = deconvolver.deconvolved_x
+```
+The variables used as input above are defined as:
+
+- impulse_response_x: 1xn array with negative one times the binding energy of the converter material photoemission spectrum (ordered from lowest to highest)
+- impulse_response_y: 1xn array with the intensity of the converter material photoemission spectrum and the same indicies as impulse_response_x
+- convolved_x: 1xk array of the electron kinetic energies of the PAX spectra
+- regularization_strengths: List of regularization strengths to optimize over
+- iterations: Number of iterations to run simulation for
+- cv_folds (not required, default = 5): Number of cross validation folds to use in estimating the optimal regularization strength
+- xray_y (not required): Ground truth X-ray spectrum, if known. Providing this will enable more visualizations (see below), but does not affect the deconvolution.
+
+The output variables are
+
+- estimated_best_regularization_strength: The estimated best regularization strength
+- estimated_xray_x: The photon energies of the estimated X-ray spectra
+- estimated_xray_y: The intensities of the estimated X-ray spectra
+
+### Estimating X-ray spectra from PAX data with Known Regularization Strength
+
+If one already knows the regularization strength they want to use, then the LRFisterDeconvolve class can be used as follows
+
+```
+deconvolver = pax_deconvolve.LRFisterDeconvolve(
+    impulse_response_x,
+    impulse_response_y,
+    convolved_x,
+    regularization_strengths,
+    iterations,
+    cv_folds=cv_folds,
+    ground_truth_y=ground_truth_y,
+)
+_ = deconvolver.fit(pax_spectra_y)
+estimated_xray_y = deconvolver.predict()
+estimated_xray_x = deconvolver.deconvolved_x
+```
+
+The variables have the same definitions as for LRFisterGrid.
+
+### Assessing Convergence
+
+One can assess whether a certain number of iterations are sufficient by running the following code in a Jupyter notebook:
+
+```
+pax_deconvolve.assess_convergence(
+    impulse_response_x,
+    impulse_response_y,
+    pax_spectra_x,
+    pax_spectra_y,
+    regularization_strengths,
+    iterations,
+)
+%tensorboard --logdir logdir
+```
+
+This will open some interactive plots which one can use to assess whether enough iterations have been run, as described in [1]. The variables have the same definitions as above.
+
+### Visualizing results
+
+The package includes some functions for plotting deconvolution results for conveinence. They can be run on a fitted LRFisterGrid instance as follows (where deconvolver is a fitted LRFisterGrid):
+
+```
+pax_deconvolve.plot_photoemission(deconvolver)
+pax_deconvolve.plot_result(deconvolver)
+pax_deconvolve.plot_cv(deconvolver)
+```
+
+### Simulating PAX data
 
 ## Examples
 
@@ -36,4 +136,5 @@ See [Demonstration Notebook](https://github.com/dhigley6/PAX2/blob/master/notebo
 ## References
 
 [1] D. J. Higley, H. Ogasawara, S. Zohar and G. L. Dakovski, "Using Photoelectron Spectroscopy to Measure Resonant Inelastic X-Ray Scattering: A Computational Investigation" (under review, arxiv version: https://arxiv.org/abs/2006.10914)
-[2] 
+[2] G. L. Dakovski et al.
+[3] T. T. Fister et al.
