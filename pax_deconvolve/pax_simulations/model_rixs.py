@@ -13,7 +13,7 @@ INCIDENT_ENERGY = 778.0  # Default incident photon energy
 
 
 def make_model_rixs(
-    rixs: Union[str, List[Union[int, str]]],
+    rixs: Union[str, List[Union[float, str]]],
     energy_loss: np.ndarray,
     incident_photon_energy: float = INCIDENT_ENERGY,
 ) -> Dict[str, np.ndarray]:
