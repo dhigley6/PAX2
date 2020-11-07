@@ -16,7 +16,7 @@ from pax_deconvolve.pax_simulations import model_photoemission
 
 def simulate_from_presets(
     total_log10_num_electrons: float,
-    rixs: str[str, List[Union[float, str]]],
+    rixs: Union[str, List[Union[float, str]]],
     photoemission: str,
     num_simulations: int,
     energy_loss: np.ndarray,
