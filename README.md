@@ -4,17 +4,17 @@ This repository contains code for deconvolving PAX data as well as simulating PA
 
 ## Overview of PAX
 
-Resonant Inelastic X-ray Scattering (RIXS) is an increasingly widely utilized technique for studying elementary excitations in a wide range of matter. In RIXS, one directs monochromatic X-ray radiation onto matter under study and measures the spectra (energy distribution) of resultant scattered X-rays. Standard RIXS estimations are accomplished by measuring X-rays directly with a grating-based spectrometer. Unfortunately, these grating-based spectrometers can be very large (up to hundreds of m<sup>2</sup> for measurements with state of the art resolutions) and have very low throughputs (~1 measured photon for every 10<sup>8</sup> photons absorbed in a sample is typical). PAX is alternative method for estimating X-ray spectra that could mitigate these challenges in many circumstances, serving as a complement to grating-based spectrometers. PAX transforms the X-ray spectra measurement problem to an electron spectra measurement problem, enabling use of electron spectrometers instead of X-ray spectrometers for X-ray spectroscopy. Electron spectrometers can be much smaller and have higher collection efficiencies than grating spectrometers with similar resolutions. 
+Resonant Inelastic X-ray Scattering (RIXS) is an increasingly widely utilized technique for studying elementary excitations in a wide range of matter. In RIXS, one directs monochromatic X-ray radiation onto matter under study and measures the spectra (energy distribution) of resultant scattered X-rays. Standard RIXS estimations are accomplished by measuring X-rays directly with a grating-based spectrometer. Unfortunately, these grating-based spectrometers can be very large (up to hundreds of m<sup>2</sup> for measurements with state of the art resolutions) and have very low throughputs (~1 measured photon for every 10<sup>8</sup> photons absorbed in a sample is typical). PAX is an alternative method for estimating X-ray spectra that could mitigate these challenges in many circumstances, serving as a complement to grating-based spectrometers. PAX transforms the X-ray spectra measurement problem to an electron spectra measurement problem, enabling use of electron spectrometers instead of X-ray spectrometers for RIXS. Electron spectrometers can be much smaller and have higher collection efficiencies than grating spectrometers with similar resolutions. 
 
 In PAX, X-rays to be measured are incident on a converter material (or other system), where absorption of the X-rays generates photoelectrons. The emitted photoelectrons are then detected with a photoelectron spectrometer, giving the PAX spectrum. The PAX spectrum is approximately the convolution of the photoemission spectrum of the converter material when exposed to single color (monochromatic) X-ray radiation and the X-ray spectrum that we want to estimate. The photoemission spectrum can be easily measured with high accuracy. A common such spectrum consists of two narrow peaks and a non-uniform background. The desired X-ray spectrum is estimated from the measured PAX and photoemission spectra through deconvolution.
 
-While inferring information about X-ray spectra in this manner is an idea that was first proposed in the 60s, the PAX method has not yet seen significant adoption. A main reason for this was concerns about whether X-ray spectra could be estimated robustly with PAX. In [1], we proposed a deconvolution algorithm for analyzing PAX data and showed that X-ray spectra could be robustly estimated from previously recorded PAX data moderate resolution (~0.5 eV) and counts (~10$^4$) [2]. Further simulations [1] showed the promise of PAX for estimation of fine features (~0.1 eV scale) of X-ray spectra under experimental conditions that we think are achievable. This repository has code for the algorithm used in [1].
+While inferring information about X-ray spectra in this manner is an idea that was first proposed in the 1960s, the PAX method has not yet seen significant adoption. A main reason for this was concerns about whether X-ray spectra could be estimated robustly with PAX. In [1], we proposed a deconvolution algorithm for analyzing PAX data and showed that X-ray spectra could be robustly estimated from previously recorded PAX data moderate resolution (~0.5 eV) and counts (~10$^4$) [2]. Further simulations [1] showed the promise of PAX for estimation of fine features (~0.1 eV scale) of X-ray spectra under experimental conditions that we think are achievable. This repository has code for the algorithm used in [1].
 
 ## Overview of Algorithm
 
 (See [1] for a detailed description).
 
-We assume we can model measured PAX spectra as a Poisson process with an expected value that is the discrete convolution over a certain range of the converter material photoemssion spectrum and the desired X-ray spectrum. From this, we can derive a scaled gradient iteration for maximizing the likelihood of the estimated RIXS spectra given the measured data. This maximum likelihood estimatation is regularized by convolving with a Gaussian after each iteration, as originally proposed in [3] for deconvolution of different types of data. The regularization strength is set by the width of this Gaussian, with wider Gaussians enforcing higher degrees of smoothness of the estimated X-ray spectra. We determine a criterion for estimating the optimal regularization strength in a self-supervised manner. We take the estimated RIXS spectrum, convolve it with the measured photoemission spectrum and determine the mean squared difference of this with respect to a different PAX spectrum measured in idential conditions. We showed with simulations in [1] that minimizing this mean squared difference approximately gives the regularization strength where the mean squared difference of estimated RIXS spectra and true RIXS spectra is minimized.
+We assume we can model measured PAX spectra as a Poisson process with an expected value that is the discrete convolution over a certain range of the converter material photoemssion spectrum and the desired X-ray spectrum. From this, we derived a scaled gradient iteration for maximizing the likelihood of the estimated RIXS spectra given the measured data. This maximum likelihood estimatation is regularized by convolving with a Gaussian after each iteration, as originally proposed in [3] for deconvolution of different types of data. The regularization strength is set by the width of this Gaussian, with wider Gaussians enforcing higher degrees of smoothness of the estimated X-ray spectra. We determine a criterion for estimating the optimal regularization strength in a self-supervised manner. We take the estimated RIXS spectrum, convolve it with the measured photoemission spectrum and determine the mean squared difference of this with respect to a different PAX spectrum measured in idential conditions. We showed with simulations in [1] that minimizing this mean squared difference approximately gives the regularization strength where the mean squared difference of estimated RIXS spectra and true RIXS spectra is minimized.
 
 ## Installation
 
@@ -51,21 +51,22 @@ estimated_best_regularization_strength = deconvolver.best_regularization_strengt
 estimated_xray_y = deconvolver.predict()
 estimated_xray_x = deconvolver.deconvolved_x
 ```
-The variables used as input above are defined as:
+The input variables are
 
-- impulse_response_x: 1xn array with negative one times the binding energy of the converter material photoemission spectrum (ordered from lowest to highest)
-- impulse_response_y: 1xn array with the intensity of the converter material photoemission spectrum and the same indicies as impulse_response_x
-- convolved_x: 1xk array of the electron kinetic energies of the PAX spectra
+- impulse_response_x: (n_i,)-shaped array with negative one times the binding energy of the converter material photoemission spectrum (ordered from lowest to highest)
+- impulse_response_y: (n_i,)-shaped array with the intensity of the converter material photoemission spectrum and the same indicies as impulse_response_x
+- convolved_x: (n_c,)-shaped array of the electron kinetic energies of the PAX spectra
 - regularization_strengths: List of regularization strengths to optimize over
 - iterations: Number of iterations to run deconvolution for
+- pax_spectra_y: (m, n_c)-shaped array with the measured PAX spectra (Each row is a PAX spectrum measured under identical conditions. As currently implemented, this requires at least two PAX spectra to work.)
 - cv_folds (not required, default = 5): Number of cross validation folds to use in estimating the optimal regularization strength
-- xray_y (not required): Ground truth X-ray spectrum, if known. Providing this will enable more visualizations (see below), but does not affect the deconvolution.
+- ground_truth_y (not required): (n_x,)-shaped ground truth X-ray spectrum, if known. Providing this will enable more visualizations (see below), but does not affect the deconvolution.
 
 The output variables are
 
 - estimated_best_regularization_strength: The estimated best regularization strength
-- estimated_xray_x: The photon energies of the estimated X-ray spectra
-- estimated_xray_y: The intensities of the estimated X-ray spectra
+- estimated_xray_x: (n_x,)-shaped array of the photon energies of the estimated X-ray spectra
+- estimated_xray_y: (n_x,)-shaped array of the intensities of the estimated X-ray spectra
 
 ### Estimating X-ray spectra from PAX data with Known Regularization Strength
 
@@ -108,13 +109,15 @@ This will open some interactive plots which one can use to assess whether enough
 
 ### Visualizing results
 
-The package includes some functions for plotting deconvolution results for conveinence. They can be run on a fitted LRFisterGrid instance as follows (where deconvolver is a fitted LRFisterGrid):
+The package includes some functions for plotting deconvolution results for conveinence. plot_photoemission and plot_result can be run on fitted instances of LRFisterGrid or LRDeconvolve while plot_cv only runs on instances of LRDeconvolve.
 
 ```
 pax_deconvolve.plot_photoemission(deconvolver)
 pax_deconvolve.plot_result(deconvolver)
 pax_deconvolve.plot_cv(deconvolver)
 ```
+
+(deconvolver is an instance where the fit method has already been run.)
 
 ### Simulating PAX data
 
