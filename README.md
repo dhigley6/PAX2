@@ -34,7 +34,7 @@ import pax_deconvolve
 
 ### Estimating X-ray spectra from PAX data
 
-X-ray spectra can be estimated from PAX data using the LRFisterGrid class. This is done by initializing the class, then running the fit method on PAX data. The result can be accessed for further processing with the predict method.
+X-ray spectra can be estimated from PAX data using the `LRFisterGrid` class. This is done by initializing the class, then running the `fit` method on PAX data. The result can be accessed for further processing with the `predict` method.
 
 ```
 deconvolver = pax_deconvolve.LRFisterGrid(
@@ -53,20 +53,22 @@ estimated_xray_x = deconvolver.deconvolved_x
 ```
 The input variables are
 
-- impulse_response_x: (n_i,)-shaped array with negative one times the binding energy of the converter material photoemission spectrum (ordered from lowest to highest)
-- impulse_response_y: (n_i,)-shaped array with the intensity of the converter material photoemission spectrum and the same indicies as impulse_response_x
-- convolved_x: (n_c,)-shaped array of the electron kinetic energies of the PAX spectra
-- regularization_strengths: List of regularization strengths to optimize over
-- iterations: Number of iterations to run deconvolution for
-- pax_spectra_y: (m, n_c)-shaped array with the measured PAX spectra (Each row is a PAX spectrum measured under identical conditions. As currently implemented, this requires at least two PAX spectra to work.)
-- cv_folds (not required, default = 5): Number of cross validation folds to use in estimating the optimal regularization strength
-- ground_truth_y (not required): (n_x,)-shaped ground truth X-ray spectrum, if known. Providing this will enable more visualizations (see below), but does not affect the deconvolution.
+- `impulse_response_x`: (n_i,)-shaped array with negative one times the binding energy of the converter material photoemission spectrum (ordered from lowest to highest)
+- `impulse_response_y`: (n_i,)-shaped array with the intensity of the converter material photoemission spectrum and the same indicies as `impulse_response_x`
+- `convolved_x`: (n_c,)-shaped array of the electron kinetic energies of the PAX spectra
+- `regularization_strengths`: List of regularization strengths to optimize over
+- `iterations`: Number of iterations to run deconvolution for
+- `pax_spectra_y`: (m, n_c)-shaped array with the measured PAX spectra (Each row is a PAX spectrum measured under identical conditions. As currently implemented, this requires at least two PAX spectra to work.)
+- `cv_folds` (not required, default = 5): Number of cross validation folds to use in estimating the optimal regularization strength
+- `ground_truth_y` (not required): (n_x,)-shaped ground truth X-ray spectrum, if known. Providing this will enable more visualizations (see below), but does not affect the deconvolution.
 
 The output variables are
 
-- estimated_best_regularization_strength: The estimated best regularization strength
-- estimated_xray_x: (n_x,)-shaped array of the photon energies of the estimated X-ray spectra
-- estimated_xray_y: (n_x,)-shaped array of the intensities of the estimated X-ray spectra
+- `estimated_best_regularization_strength`: The estimated best regularization strength
+- `estimated_xray_x`: (n_x,)-shaped array of the photon energies of the estimated X-ray spectra
+- `estimated_xray_y`: (n_x,)-shaped array of the intensities of the estimated X-ray spectra
+
+The arrays with an energy dependence are assumed to have equal energy spacing between points. The PAX spectrum is modelled as a ['valid' convolution](https://numpy.org/doc/stable/reference/generated/numpy.convolve.html) of the X-ray spectrum to be estimated and the converter material photoemission spectrum. The measured converter material photoemission spectrum is assumed to be wider in extent than the measured PAX spectrum. This means that the x values (energies) of any one of these spectra is uniquely determined by that of the other two. In addition, the lengths of the spectra are related through n_c = n_i-n_x+1.
 
 ### Estimating X-ray spectra from PAX data with Known Regularization Strength
 
@@ -87,7 +89,7 @@ estimated_xray_y = deconvolver.predict()
 estimated_xray_x = deconvolver.deconvolved_x
 ```
 
-The variables have the same definitions as for LRFisterGrid.
+The variables have the same definitions as for `LRFisterGrid`.
 
 ### Assessing Convergence
 
@@ -105,11 +107,13 @@ pax_deconvolve.assess_convergence(
 %tensorboard --logdir logdir
 ```
 
-This will open some interactive plots which one can use to assess whether enough iterations have been run, as described in [1]. The variables have the same definitions as above.
+The variables have the same definitions as above.
+
+This will open some interactive plots which one can use to assess whether enough iterations have been run. The stopping criterion used in [1] was to run iterations at least equal to four times that where the validation root mean squared error is minimized (the error determined between the estimated RIXS spectrum convolved with the measured photoemission spectrum and a different measurement of the PAX spectrum recorded under otherwise identical conditions).
 
 ### Visualizing results
 
-The package includes some functions for plotting deconvolution results for conveinence. plot_photoemission and plot_result can be run on fitted instances of LRFisterGrid or LRDeconvolve while plot_cv only runs on instances of LRDeconvolve.
+The package includes some functions for plotting deconvolution results for conveinence. `plot_photoemission` and `plot_result` can be run on fitted instances of `LRFisterGrid` or `LRDeconvolve` while `plot_cv` only runs on instances of `LRDeconvolve`.
 
 ```
 pax_deconvolve.plot_photoemission(deconvolver)
@@ -117,7 +121,7 @@ pax_deconvolve.plot_result(deconvolver)
 pax_deconvolve.plot_cv(deconvolver)
 ```
 
-(deconvolver is an instance where the fit method has already been run.)
+(`deconvolver` is an instance where the fit method has already been run.)
 
 ### Simulating PAX data
 
@@ -138,13 +142,13 @@ xray_x, xray_y = xray_xy['x'], xray_xy['y']
 
 The output variables have the same meanings as defined above. The inputs are defined as
 
-- log10_num_electrons: Base 10 logarithm of the integrated number of detected electrons in the simulated PAX spectra
-- photoemission_model: Which photoemission model to use, must be one of
+- `log10_num_electrons`: Base 10 logarithm of the integrated number of detected electrons in the simulated PAX spectra
+- `photoemission_model`: Which photoemission model to use, must be one of
   - 'ag'
   - 'ag_with_bg'
   - 'au_4f'
-- num_simulations: Number of PAX spectra to simulate
-- energy_loss: Energy loss values for X-ray spectrum
+- `num_simulations`: Number of PAX spectra to simulate
+- `energy_loss`: Energy loss values for X-ray spectrum
 
 ## Examples
 
