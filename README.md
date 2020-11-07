@@ -24,7 +24,7 @@ pip install git+https://github.com/dhigley6/PAX2
 
 ## Usage
 
-All of the functionality that is intended for use is described below. The central object is the LRFisterGrid class. This is a [Scikit-Learn](scikit-learn.org) estimator-style class which estimates an X-ray spectrum given a set of PAX spectra measured under approximately identical conditions and the measured converter material photoemission spectrum. The best regularization strength is estimated from the data before estimating the X-ray spectrum. If one already knows the regularization strength they want to use, then they can use the LRFisterDeconvolve class.
+All of the functionality that is intended for use is described below. The central object is the LRFisterGrid class. This is a [Scikit-Learn](https://scikit-learn.org/) estimator-style class which estimates an X-ray spectrum given a set of PAX spectra measured under approximately identical conditions and the measured converter material photoemission spectrum. The best regularization strength is estimated from the data before estimating the X-ray spectrum. If one already knows the regularization strength they want to use, then they can use the LRFisterDeconvolve class.
 
 Before running analysis, import the package,
 
