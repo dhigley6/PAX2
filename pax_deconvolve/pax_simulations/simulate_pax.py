@@ -6,7 +6,7 @@ Created on Wed Jan  9 12:03:51 2019
 Calculate simulated PAX spectra with Poisson statistics.
 """
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Union, List
 import numpy as np
 from scipy.signal import convolve
 
@@ -16,7 +16,7 @@ from pax_deconvolve.pax_simulations import model_photoemission
 
 def simulate_from_presets(
     total_log10_num_electrons: float,
-    rixs: str,
+    rixs: Union[str, List[Union[float, str]]],
     photoemission: str,
     num_simulations: int,
     energy_loss: np.ndarray,
