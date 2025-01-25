@@ -159,7 +159,7 @@ Example showing deconvolution of higher resolution simulated data: [Simulated](h
 
 ## References
 
-[1] D. J. Higley, H. Ogasawara, S. Zohar and G. L. Dakovski, "Using Photoelectron Spectroscopy to Measure Resonant Inelastic X-Ray Scattering: A Computational Investigation" (under review, arxiv version: https://arxiv.org/abs/2006.10914).
+[1] D. J. Higley, H. Ogasawara, S. Zohar and G. L. Dakovski, "Using Photoelectron Spectroscopy to Measure Resonant Inelastic X-Ray Scattering: A Computational Investigation", J. Synchrotron Radiat. **29**, 202-213 (2022).
 
 [2] G. L. Dakovski, M.-F. Lin, D. S. Damiani, W. F. Schlotter, J. J. Turner, D. Nordlund, and H. Ogasawara, J. Synchrotron Radiat. **24**, 1180 (2017).
 
